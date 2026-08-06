@@ -1,4 +1,4 @@
-# BubbleMap
+# 🫧 BubbleMap
 
 BubbleMap is a small, visual note board for jotting down tasks and ideas as "bubbles" you can drag around, link together, and organize like a mind map. There's no sign-up involved — everything you create stays on your own device.
 
@@ -48,3 +48,5 @@ The downside is, there is no automatic sync between devices or even browsers. Ma
 ## Want to support me?
 Wow, so generous. Now scram - give that money to your favorite Wikipedia Foundation.
 
+## License
+MIT license because that sounds smart. idk
