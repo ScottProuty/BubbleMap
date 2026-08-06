@@ -1,8 +1,8 @@
 # 🫧 BubbleMap
 
-BubbleMap is a small, visual note board for jotting down tasks and ideas as "bubbles" you can drag around, link together, and organize like a mind map. There's no sign-up involved — everything you create stays on your own device.
+BubbleMap is a small, visual note board for jotting down tasks and ideas as "bubbles" you can drag around, link together, and organize like a mind map. And there are colors!
 
-There are two deployments of BubbleMap - a web version, and a desktop version.
+There are two deployments of BubbleMap - a web version, and a desktop version (coming soon!).
 
 ## How to use BubbleMap
 
@@ -16,7 +16,7 @@ Click a bubble to expand it. While it's expanded you can edit its title and desc
 
 ### Linking bubbles together
 
-Drag a bubble and drop it on top of another one to link them — the bubble you dropped becomes a "child" of the other one, shown with a line connecting them. A child bubble's color blends with its parent's, so related ideas are easy to spot at a glance. A bubble can have more than one parent if you link it to multiple bubbles.
+Drag a bubble and drop it on top of another one to link them. The bubble you dropped becomes a "child" of the other one, shown with a line connecting them. A child bubble's color blends with its parent's, so related ideas are easy to spot at a glance. A bubble can have more than one parent if you link it to multiple bubbles.
 
 ### Moving things around
 
