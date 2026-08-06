@@ -1,27 +1,94 @@
-# Pop Mind Map Application Description
-## Initial Startup and Appearance
-Upon first startup, it will show a blank screen with only a small "+" button in the top left corner and another button labeled "Done List". The interface should be in "dark mode" styled colors. The main screen area can be panned around by clicking and dragging, or zoomed in and out with the mouse scroll wheel. 
-## Adding a Bubble
-Clicking the "+" button will begin creation of a new "bubble" - a note record stored as an entry in a single `Bubbles/bubbles.json` file. Pop will create each bubble record with the following as a template:
-- A unique id, assigned when the bubble is created and independent of its title, so renaming a bubble later never changes its id or breaks other bubbles' parent links
-- Date and Time created (automatically populated when created)
-- Date and time marked done (not populated for now)
-- Title (cannot be blank)
-- Description (can be blank)
-- Parent Bubbles (can be blank, stored as an array of ids)
-- Color (Stored as Hue-Saturation-Lightness)
-Upon clicking the "+" button, the bubble appears on the main screen as a rounded rectangle with a randomly selected border color (store this color in the Color attribute), and immediately allows the user to start typing the title of this bubble. If a title is typed, hitting Enter will finish creation of the bubble, creating the record. The bubble will stay displayed on screen. Hitting Tab after typing in the Title field will also finish bubble creation the same way, but will also expand (select) the bubble and move the caret to the description field. Double-clicking on the main screen will perform the same action as clicking "+". 
-If the user clicks elsewhere or hits Enter before a title is typed, the bubble creation is cancelled and the record is not created. 
-## Bubble Selection
-Bubbles can be clicked on to be selected. When an existing bubble is clicked, it expands to show its containing information - the title, date created, description, a "delete" button, and a button to mark as "done". These pieces of data are displayed as separate fields within the bubble border, and are editable while the bubble is selected. Selected bubbles also display more outer glow outside their border, in the same color as the border. When clicking outside the bubble or on another bubble, the deselected bubble shrinks to only show the title. Bubbles cannot move on their own while they are selected.
-Clicking the "delete" button will remove the bubble from view and set a `deleted: true` flag on its record in `bubbles.json` rather than removing it; deleted bubbles are filtered out whenever bubbles are loaded onto the main screen, and are only permanently removed via the Settings dialog's "Clear Deleted" action. 
-## Linking Bubbles
-Bubbles can be clicked and dragged to be moved around relative to the other bubbles. If a bubble is dragged on top of another bubble, it will be set as the child of the bubble it is dropped onto. This will set that bubble underneath it as its "parent". This relationship is displayed on the main screen with a 2px line drawn from the bottom of the parent bubble to the top of the child bubble. The line color should match that of the border color of the parent bubble. The child bubble's border color will change to match the parent's, but with 10% higher lightness in the HSL color model if possible. 
-If the bubble dropped onto another bubble already has a parent, the dropped bubble will have the new parent added as another entry in its Parent Bubbles array. All link lines will be displayed in the main view. The new child bubble's color will be an average of all parents' HSL values with 10% increased lightness. 
-## Bubble Physics
-If a parent bubble is moved, the child bubble will move with it. If they aren't already in the ideal position, bubbles will slowly move on their own to attempt to get to an ideal position. The ideal position is determined with a few integer values, which can be hard-coded for now: "RepelForce", which is the distance each bubble would like to be away from every other bubble (from center to center, measured in pixels). "LinkForce", which is the distance which linked parent and child bubbles would like to be away from each other, which is typically less than RepelForce. LinkForce takes priority over RepelForce for linked bubbles. "MaxDistance", which is the maximum distance between each bubble and the next closest bubble. And "LinkDistance", which is the distance below a parent bubble that a child bubble would like to be. Child bubbles always want to be below their parent bubbles. If a bubble is moved somewhere else and dropped, it will slowly move until it is at least RepelForce distance away from all other bubbles, and at least LinkDistance below its parent bubble or bubbles. MaxDistance from the next closest bubble, it will start to move towards the next closest bubble. Bubbles with multiple parents will settle horizontally to the average x value between all parents.
-These distances are set relative to a 100% scale factor. Panning or zooming with the mouse will move or scale the view, but not cause bubble movement. 
-Bubbles are frozen (movement disabled) while any bubble is being dragged with the mouse.
-Pressing the "Mark as Done" button on a selected bubble will populate the "Date and time marked done" field for that bubble automatically, and remove the bubble from the main view.
-## Done List
-Clicking the "Done List" button will open a modal dialog (which can be closed with the "x" button or by clicking outside of the dialog) with a list of all bubbles which have been marked done, sorted by date marked done with the latest at top. These are listed by their titles, and the titles can be individually expanded to show the other information. While expanded, there is an "Unmark as Done" button which will remove the "date and time marked done" data, remove the item from the Done List, and restore it as a bubble viewable on the main screen, with the same parent as before if there was one. 
+# Pop
+
+Pop is a small, visual note board for jotting down tasks and ideas as "bubbles"
+you can drag around, link together, and organize into a mind map. There's no
+sign-up and no server involved — everything you create stays on your own device.
+
+## Features
+
+- **Quick capture** — double-click anywhere on the board to jot down a new bubble
+- **Freeform linking** — drag one bubble onto another to connect them as
+  parent/child, building out a mind map as you go
+- **Automatic layout** — bubbles gently push apart and settle near the things
+  they're linked to, so you rarely need to arrange anything by hand
+- **Done list** — mark bubbles done to tuck them away, and revisit them anytime
+- **Private by default** — your notes live in your browser (or, in the desktop
+  version, in a file on your computer) and are never sent anywhere
+- **Backups** — save a copy of your board whenever you like, and restore it later
+
+## Getting started
+
+You'll need [Node.js](https://nodejs.org/) installed. Then, from the project
+folder:
+
+```
+npm install
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser and you're
+in.
+
+## How to use Pop
+
+### Creating a bubble
+
+Click the **+** button in the top-left corner, or double-click anywhere on the
+empty canvas. Type a title and press **Enter** to create it, or press **Tab**
+to create it and jump straight into writing a description.
+
+### Viewing and editing a bubble
+
+Click a bubble to expand it. While it's expanded you can edit its title and
+description, mark it done, or delete it. Click anywhere else to collapse it
+back down.
+
+### Linking bubbles together
+
+Drag a bubble and drop it on top of another one to link them — the bubble you
+dropped becomes a "child" of the one underneath, shown with a line connecting
+them. A child bubble's color blends with its parent's, so related ideas are
+easy to spot at a glance. A bubble can have more than one parent if you link it
+to multiple bubbles.
+
+### Moving things around
+
+You don't need to carefully arrange your board — bubbles automatically drift
+apart from each other and settle near whatever they're linked to. Drag a
+bubble somewhere new and everything else adjusts around it. Pan around the
+board by clicking and dragging empty space, and zoom in or out with your
+scroll wheel.
+
+### Marking a bubble done
+
+Expand a bubble and click **Mark as Done** to clear it off the board. You can
+find everything you've completed later by clicking **Done List** in the
+toolbar, sorted by when it was finished. From there, you can also
+**Unmark as Done** to bring a bubble back.
+
+### Deleting a bubble
+
+Expand a bubble and click **Delete**. This removes it for good, so if you'd
+like a safety net, save a backup first (see below).
+
+## Settings
+
+Click **Settings** in the toolbar to:
+
+- Turn on **Show Completed** to keep done bubbles visible on the board instead
+  of tucking them into the Done List
+- Adjust how strongly bubbles push apart from each other and how far apart
+  they like to sit
+- **Save Backup** a copy of everything on your board, or **Recall Backup** to
+  restore one you saved earlier
+
+## Your data stays yours
+
+Pop doesn't have an account system or a server storing your notes — everything
+lives locally, in your browser or on your computer. That also means it's a
+good habit to use **Save Backup** every so often, especially before clearing
+your browser data or switching devices.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
