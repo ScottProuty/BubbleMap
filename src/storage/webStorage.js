@@ -2,7 +2,7 @@
 // whole bubble document is stored as a single JSON-serializable value under a
 // fixed key, mirroring how bubbles.json is "one JSON blob" server-side.
 
-const DB_NAME = 'PopDB';
+const DB_NAME = 'BubbleMapDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'bubblesStore';
 const DOC_KEY = 'doc';
@@ -50,7 +50,7 @@ async function exportBackup(data) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `pop-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `bubblemap-backup-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();

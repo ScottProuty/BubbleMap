@@ -1,14 +1,7 @@
 {
-  "name": "pop",
+  "name": "bubblemap",
   "version": "1.0.0",
-  "description": "Pop - a mind map style note organizer",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-  },
-  "dependencies": {
-    "express": "^4.19.2"
-  },
+  "description": "BubbleMap - a mind map style note organizer",
   "devDependencies": {
     "playwright": "^1.61.1"
   }

@@ -1,0 +1,185 @@
+// Parent/child linking, the color-inheritance that flows from it, and rendering
+// the SVG link lines (including hover state and the unlink "x" button).
+
+import { dom, state } from './state.js';
+import { hslCss, distanceToSegment, clearEl, randomColor } from './utils.js';
+import { persistBubble } from './bubbles.js';
+import { wakePhysics } from './physics.js';
+
+const CHILD_HUE_JITTER = 10; // Random +/- degrees a child's hue may drift from its parent's
+const OVERLAP_THRESHOLD = 110; // Distance between dragged and target bubble to allow drop for linkage
+const LINK_HOVER_THRESHOLD = 10;
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function hasAncestor(bubble, targetId, visited) {
+  visited = visited || new Set();
+  for (const pid of bubble.parents) {
+    if (pid === targetId) return true;
+    if (visited.has(pid)) continue;
+    visited.add(pid);
+    const p = state.bubbles.get(pid);
+    if (p && hasAncestor(p, targetId, visited)) return true;
+  }
+  return false;
+}
+
+function averageHue(hues) {
+  let sx = 0, sy = 0;
+  hues.forEach((h) => {
+    const rad = (h * Math.PI) / 180;
+    sx += Math.cos(rad);
+    sy += Math.sin(rad);
+  });
+  let avg = (Math.atan2(sy / hues.length, sx / hues.length) * 180) / Math.PI;
+  if (avg < 0) avg += 360;
+  return avg;
+}
+
+function computeColorFromParents(bubble) {
+  if (!bubble.parents.length) return randomColor();
+  const parentColors = bubble.parents.map((pid) => state.bubbles.get(pid)).filter(Boolean).map((p) => p.color);
+  if (!parentColors.length) return bubble.color;
+  const avgH = averageHue(parentColors.map((c) => c.h));
+  const avgS = parentColors.reduce((s, c) => s + c.s, 0) / parentColors.length;
+  const avgL = parentColors.reduce((s, c) => s + c.l, 0) / parentColors.length;
+  const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
+  const hueJitter = plusOrMinus * CHILD_HUE_JITTER;
+  const jitteredHue = ((avgH + hueJitter) % 360 + 360) % 360;
+  return { h: Math.round(jitteredHue), s: Math.round(avgS), l: Math.min(100, Math.round(avgL + 10)) };
+}
+
+function recomputeColorsFrom(bubble) {
+  bubble.color = computeColorFromParents(bubble);
+  const colorCss = hslCss(bubble.color);
+  bubble.el.style.borderColor = colorCss;
+  bubble.el.style.setProperty('--bubble-color', colorCss);
+  if (bubble.selected) bubble.el.style.boxShadow = `0 0 18px 5px ${colorCss}`;
+  persistBubble(bubble);
+  for (const b of state.bubbles.values()) {
+    if (b.parents.includes(bubble.id)) recomputeColorsFrom(b);
+  }
+}
+
+export function unlinkBubbles(child, parent) {
+  const idx = child.parents.indexOf(parent.id);
+  if (idx === -1) return;
+  child.parents.splice(idx, 1);
+  recomputeColorsFrom(child);
+  rebuildLinksSVG();
+  wakePhysics();
+}
+
+export function linkBubbles(child, parent) {
+  if (child === parent || !parent.id || !child.id) return;
+  if (child.parents.includes(parent.id)) return;
+  if (hasAncestor(parent, child.id)) return;
+  child.parents.push(parent.id);
+  recomputeColorsFrom(child);
+  wakePhysics();
+}
+
+export function findDropTarget(bubble) {
+  let best = null;
+  let bestDist = Infinity;
+  for (const o of state.bubbles.values()) {
+    if (o === bubble) continue;
+    const d = Math.hypot(o.x - bubble.x, o.y - bubble.y);
+    if (d < OVERLAP_THRESHOLD && d < bestDist) {
+      bestDist = d;
+      best = o;
+    }
+  }
+  return best;
+}
+
+export function highlightDropTarget(bubble, target) {
+  for (const o of state.bubbles.values()) {
+    if (o === bubble) continue;
+    o.el.style.outline = target === o ? `3px dashed ${hslCss(o.color)}` : '';
+  }
+}
+
+export function clearDropHighlight() {
+  for (const o of state.bubbles.values()) o.el.style.outline = '';
+}
+
+function linkKey(childId, parentId) {
+  return childId + '::' + parentId;
+}
+
+export function updateLinkHover() {
+  let closestKey = null;
+  let closestDist = LINK_HOVER_THRESHOLD;
+  if (state.mouseScreen) {
+    for (const b of state.bubbles.values()) {
+      for (const pid of b.parents) {
+        const p = state.bubbles.get(pid);
+        if (!p) continue;
+        const x1 = p.x * state.zoom + state.pan.x, y1 = p.y * state.zoom + state.pan.y;
+        const x2 = b.x * state.zoom + state.pan.x, y2 = b.y * state.zoom + state.pan.y;
+        const d = distanceToSegment(state.mouseScreen.x, state.mouseScreen.y, x1, y1, x2, y2);
+        if (d < closestDist) {
+          closestDist = d;
+          closestKey = linkKey(b.id, pid);
+        }
+      }
+    }
+  }
+  if (closestKey !== state.hoveredLinkKey) {
+    state.hoveredLinkKey = closestKey;
+    rebuildLinksSVG();
+  }
+}
+
+export function rebuildLinksSVG() {
+  clearEl(dom.linksLayerEl);
+  for (const b of state.bubbles.values()) {
+    if (!b.parents.length) continue;
+    for (const pid of b.parents) {
+      const p = state.bubbles.get(pid);
+      if (!p) continue;
+
+      const midX = (p.x + b.x) / 2;
+      const midY = (p.y + b.y) / 2;
+      const isHovered = state.hoveredLinkKey === linkKey(b.id, pid);
+
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('class', 'link-group' + (isHovered ? ' active' : ''));
+      g.style.setProperty('--link-color', hslCss(p.color));
+
+      const visible = document.createElementNS(SVG_NS, 'line');
+      visible.setAttribute('x1', p.x);
+      visible.setAttribute('y1', p.y);
+      visible.setAttribute('x2', b.x);
+      visible.setAttribute('y2', b.y);
+      visible.setAttribute('class', 'link-visible');
+
+      const xGroup = document.createElementNS(SVG_NS, 'g');
+      xGroup.setAttribute('class', 'link-x');
+      xGroup.setAttribute('transform', `translate(${midX}, ${midY})`);
+
+      const xBg = document.createElementNS(SVG_NS, 'circle');
+      xBg.setAttribute('r', '9');
+      xBg.setAttribute('class', 'link-x-bg');
+
+      const xLabel = document.createElementNS(SVG_NS, 'text');
+      xLabel.setAttribute('class', 'link-x-label');
+      xLabel.setAttribute('x', '0');
+      xLabel.setAttribute('y', '1');
+      xLabel.textContent = '×';
+
+      xGroup.appendChild(xBg);
+      xGroup.appendChild(xLabel);
+      xGroup.addEventListener('mousedown', (e) => e.stopPropagation());
+      xGroup.addEventListener('click', (e) => {
+        e.stopPropagation();
+        unlinkBubbles(b, p);
+      });
+
+      g.appendChild(visible);
+      g.appendChild(xGroup);
+      dom.linksLayerEl.appendChild(g);
+    }
+  }
+}

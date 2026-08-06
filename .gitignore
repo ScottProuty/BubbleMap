@@ -1,8 +1,3 @@
-# --- Specific for Pop app --- 
-# Don't upload my data publicly
-Bubbles/bubbles.json
-
-
 # Logs
 logs
 *.log
