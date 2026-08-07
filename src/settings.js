@@ -33,9 +33,9 @@ let settingsControlsBound = false;
 // only) attaches its change listener. Called every time the modal opens.
 function bindSettingsControls() {
   const showCompletedInput = document.getElementById('showCompletedSetting');
-  const repelForceInput = document.getElementById('repelForceSetting');
-  const maxDistanceInput = document.getElementById('maxDistanceSetting');
-  const linkDistanceInput = document.getElementById('linkDistanceSetting');
+  const repelForceInput = document.getElementById('repelForceSettingMenu');
+  const maxDistanceInput = document.getElementById('maxDistanceSettingMenu');
+  const linkDistanceInput = document.getElementById('linkDistanceSettingMenu');
 
   showCompletedInput.checked = settings.showCompletedSetting;
   repelForceInput.value = settings.repelForce;
@@ -50,24 +50,18 @@ function bindSettingsControls() {
     applySetting('showCompletedSetting');
   });
 
-  repelForceInput.addEventListener('input', () => {
-    const val = parseFloat(repelForceInput.value);
-    if (!Number.isFinite(val)) return;
-    settings.repelForce = val;
+  repelForceInput.addEventListener('change', () => {
+    settings.repelForce = parseInt(repelForceInput.value, 10);
     applySetting('repelForce');
   });
 
-  maxDistanceInput.addEventListener('input', () => {
-    const val = parseFloat(maxDistanceInput.value);
-    if (!Number.isFinite(val)) return;
-    settings.maxDistance = val;
+  maxDistanceInput.addEventListener('change', () => {
+    settings.maxDistance = parseInt(maxDistanceInput.value, 10);
     applySetting('maxDistance');
   });
 
-  linkDistanceInput.addEventListener('input', () => {
-    const val = parseFloat(linkDistanceInput.value);
-    if (!Number.isFinite(val)) return;
-    settings.linkDistance = val;
+  linkDistanceInput.addEventListener('change', () => {
+    settings.linkDistance = parseInt(linkDistanceInput.value, 10);
     applySetting('linkDistance');
   });
 }
