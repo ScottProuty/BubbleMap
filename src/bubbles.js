@@ -146,6 +146,13 @@ export function selectBubble(bubble) {
 }
 
 export function deselectBubble(bubble) {
+  // Flush any pending edits before tearing down the inputs below. Can't rely on
+  // the browser having already fired 'blur' on them - Safari, unlike Chrome,
+  // doesn't reliably blur a focused element on mousedown when the newly-clicked
+  // target (e.g. the canvas) isn't itself focusable.
+  if (bubble._titleInput) commitTitle(bubble, bubble._titleInput.value);
+  if (bubble._descInput) commitDescription(bubble, bubble._descInput.value);
+
   bubble.selected = false;
   if (state.selectedBubble === bubble) state.selectedBubble = null;
   renderBubbleContent(bubble);
