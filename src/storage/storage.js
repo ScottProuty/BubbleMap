@@ -15,7 +15,7 @@
 // only ever imported when isTauri() is true, the browser never attempts to fetch
 // or evaluate it on a non-Tauri deployment.
 
-function isTauri() {
+export function isTauri() {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 

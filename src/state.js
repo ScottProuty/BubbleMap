@@ -55,10 +55,10 @@ export const state = {
   lastTime: null
 };
 
-// Settings are in-memory only right now (defaults reset on reload). To persist
-// them, save `settings` to localStorage (or a server endpoint) whenever it
-// changes, and load it back into `settings` before bindSettingsControls() runs
-// the first time.
+// On the web deployment, these are persisted to localStorage (and reloaded into
+// this object) by src/settings.js - see loadPersistedSettings()/persistSettings()
+// there. The values below are just the in-memory defaults used until that load
+// happens, and the fallback if nothing's been saved yet.
 export const settings = {
   showCompletedSetting: false,
   repelForce: physicsParams.REPEL_FORCE,

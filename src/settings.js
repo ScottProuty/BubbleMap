@@ -15,14 +15,61 @@ import { dom, settings, physicsParams } from './state.js';
 import { wakePhysics } from './physics.js';
 import { loadDoneBubbles, hideDoneBubbles } from './bubbles.js';
 import bubbleRepository from './storage/bubbleRepository.js';
+import { isTauri } from './storage/storage.js';
+
+// Settings are only persisted to localStorage on the web (non-Tauri) deployment -
+// the desktop build will get its own persistence alongside its file-based bubble
+// storage (src/storage/desktopStorage.js) once that's wired up.
+const SETTINGS_STORAGE_KEY = 'bubblemap-settings';
+
+function loadPersistedSettings() {
+  if (isTauri()) return;
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (typeof saved.showCompletedSetting === 'boolean') settings.showCompletedSetting = saved.showCompletedSetting;
+    if (Number.isFinite(saved.repelForce)) settings.repelForce = saved.repelForce;
+    if (Number.isFinite(saved.maxDistance)) settings.maxDistance = saved.maxDistance;
+    if (Number.isFinite(saved.linkDistance)) settings.linkDistance = saved.linkDistance;
+  } catch (e) {
+    // Corrupt or unavailable localStorage (e.g. private browsing) - fall back to defaults.
+  }
+  physicsParams.REPEL_FORCE = settings.repelForce;
+  physicsParams.MAX_DISTANCE = settings.maxDistance;
+  physicsParams.LINK_DISTANCE = settings.linkDistance;
+}
+
+// Runs once, as soon as this module is first imported - before BubbleMap.js starts
+// physics or anything else that reads `settings`/`physicsParams` - so the saved
+// values are already in effect for the very first frame.
+loadPersistedSettings();
+
+function persistSettings() {
+  if (isTauri()) return;
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch (e) {
+    // localStorage unavailable (e.g. private browsing) - settings just won't persist.
+  }
+}
+
+// True once a setting has actually been changed since the modal was last opened,
+// so closeSettings() only writes to localStorage when there's something new to save.
+let settingsChangedSinceOpen = false;
 
 export function openSettings() {
   bindSettingsControls();
+  settingsChangedSinceOpen = false;
   dom.settingsOverlay.classList.remove('hidden');
 }
 
 export function closeSettings() {
   dom.settingsOverlay.classList.add('hidden');
+  if (settingsChangedSinceOpen) {
+    persistSettings();
+    settingsChangedSinceOpen = false;
+  }
 }
 
 // True once the settings controls' change/input listeners have been attached. Only the
@@ -47,21 +94,25 @@ function bindSettingsControls() {
 
   showCompletedInput.addEventListener('change', () => {
     settings.showCompletedSetting = showCompletedInput.checked;
+    settingsChangedSinceOpen = true;
     applySetting('showCompletedSetting');
   });
 
   repelForceInput.addEventListener('change', () => {
     settings.repelForce = parseInt(repelForceInput.value, 10);
+    settingsChangedSinceOpen = true;
     applySetting('repelForce');
   });
 
   maxDistanceInput.addEventListener('change', () => {
     settings.maxDistance = parseInt(maxDistanceInput.value, 10);
+    settingsChangedSinceOpen = true;
     applySetting('maxDistance');
   });
 
   linkDistanceInput.addEventListener('change', () => {
     settings.linkDistance = parseInt(linkDistanceInput.value, 10);
+    settingsChangedSinceOpen = true;
     applySetting('linkDistance');
   });
 }
