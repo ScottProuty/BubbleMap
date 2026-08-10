@@ -36,7 +36,12 @@ export const colorThemes = {
   'Vibrant': {
     hueRange: [0, 360],
     saturationRange: [80, 100],
-    lightnessRange: [50, 65]
+    lightnessRange: [55, 65]
+  },
+  'Grayscale': {
+    hueRange: [0, 360],
+    saturationRange: [0, 1],
+    lightnessRange: [0, 100]
   },
 };
 
