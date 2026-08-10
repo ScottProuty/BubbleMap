@@ -109,6 +109,12 @@ function renderBubbleContent(bubble) {
       if (e.key === 'Enter') { e.preventDefault(); titleInput.blur(); }
     });
     desc.addEventListener('blur', () => commitDescription(bubble, desc.value));
+    desc.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        deselectBubble(bubble);
+      }
+    });
     doneBtn.addEventListener('click', (e) => { e.stopPropagation(); markDone(bubble); });
     delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteBubble(bubble); });
 
@@ -282,7 +288,12 @@ export function startCreateBubble(x, y) {
   });
 
   const outsideHandler = (e) => {
-    if (!bubble.el.contains(e.target)) cancelCreating();
+    if (bubble.el.contains(e.target)) return;
+    if (input.value.trim()) {
+      finalizeCreate(bubble, input.value, false);
+    } else {
+      cancelCreating();
+    }
   };
   bubble._outsideHandler = outsideHandler;
   document.addEventListener('mousedown', outsideHandler, true);
