@@ -31,7 +31,7 @@ export async function createBubble({ title, color, parents }) {
     created: new Date().toISOString(),
     done: '',
     parents: Array.isArray(parents) ? parents : [],
-    color: color && typeof color === 'object' ? color : { h: 0, s: 70, l: 55 },
+    color: color && typeof color === 'object' ? color : { h: 0, s: 0.5, l: 0.5 },
     description: ''
   };
   all.push(bubble);

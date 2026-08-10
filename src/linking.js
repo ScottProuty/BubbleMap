@@ -6,7 +6,7 @@ import { hslCss, distanceToSegment, clearEl, randomColor } from './utils.js';
 import { persistBubble } from './bubbles.js';
 import { wakePhysics } from './physics.js';
 
-const CHILD_HUE_JITTER = 10; // Random +/- degrees a child's hue may drift from its parent's
+const CHILD_HUE_JITTER = 10 / 360; // Random +/- fraction of the full hue range a child's hue may drift from its parent's
 const OVERLAP_THRESHOLD = 110; // Distance between dragged and target bubble to allow drop for linkage
 const LINK_HOVER_THRESHOLD = 10;
 
@@ -24,15 +24,17 @@ function hasAncestor(bubble, targetId, visited) {
   return false;
 }
 
+// Circular mean of normalized hues (each in [0, 1), representing a fraction of
+// the full hue wheel) so e.g. averaging 0.99 and 0.02 gives ~0.005, not ~0.5.
 function averageHue(hues) {
   let sx = 0, sy = 0;
   hues.forEach((h) => {
-    const rad = (h * Math.PI) / 180;
+    const rad = h * 2 * Math.PI;
     sx += Math.cos(rad);
     sy += Math.sin(rad);
   });
-  let avg = (Math.atan2(sy / hues.length, sx / hues.length) * 180) / Math.PI;
-  if (avg < 0) avg += 360;
+  let avg = Math.atan2(sy / hues.length, sx / hues.length) / (2 * Math.PI);
+  if (avg < 0) avg += 1;
   return avg;
 }
 
@@ -45,8 +47,8 @@ function computeColorFromParents(bubble) {
   const avgL = parentColors.reduce((s, c) => s + c.l, 0) / parentColors.length;
   const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
   const hueJitter = plusOrMinus * CHILD_HUE_JITTER;
-  const jitteredHue = ((avgH + hueJitter) % 360 + 360) % 360;
-  return { h: Math.round(jitteredHue), s: Math.round(avgS), l: Math.min(100, Math.round(avgL + 10)) };
+  const jitteredHue = ((avgH + hueJitter) % 1 + 1) % 1;
+  return { h: jitteredHue, s: avgS, l: Math.min(1, avgL + 0.1) };
 }
 
 function recomputeColorsFrom(bubble) {

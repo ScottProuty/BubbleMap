@@ -2,20 +2,78 @@
 
 import { dom, state } from './state.js';
 
+// Each bubble stores its color as normalized h/s/l values in [0, 1] rather than
+// real HSL numbers - see randomColor() below. hslCss() scales those normalized
+// values into the currently selected theme's ranges, so switching themes just
+// changes the scaling, never the underlying stored value. That's what lets a
+// bubble return to its exact previous look when the user switches back.
+export const colorThemes = {
+  'Rainbow': {
+    hueRange: [0, 360],
+    saturationRange: [70, 90],
+    lightnessRange: [45, 70]
+  },
+  'Pastel': {
+    hueRange: [0, 360],
+    saturationRange: [40, 60],
+    lightnessRange: [70, 90]
+  },
+  'Mono Blue': {
+    hueRange: [210, 270],
+    saturationRange: [60, 100],
+    lightnessRange: [50, 70]
+  },
+  'Sunset': {
+    hueRange: [0, 60],
+    saturationRange: [70, 90],
+    lightnessRange: [40, 60]
+  },
+  'Muted': {
+    hueRange: [0, 360],
+    saturationRange: [30, 50],
+    lightnessRange: [55, 70]
+  },
+  'Vibrant': {
+    hueRange: [0, 360],
+    saturationRange: [80, 100],
+    lightnessRange: [50, 65]
+  },
+};
+
+const DEFAULT_COLOR_THEME = 'Rainbow';
+let currentTheme = DEFAULT_COLOR_THEME;
+
+export function colorThemeNames() {
+  return Object.keys(colorThemes);
+}
+
+export function getColorTheme() {
+  return currentTheme;
+}
+
+export function setColorTheme(name) {
+  if (colorThemes[name]) currentTheme = name;
+}
+
+function scaleToRange(t, [min, max]) {
+  return min + t * (max - min);
+}
+
 export function clearEl(el) {
   while (el.firstChild) el.removeChild(el.firstChild);
 }
 
 export function hslCss(color) {
-  return `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+  const theme = colorThemes[currentTheme];
+  const h = scaleToRange(color.h, theme.hueRange);
+  const s = scaleToRange(color.s, theme.saturationRange);
+  const l = scaleToRange(color.l, theme.lightnessRange);
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
+// Normalized h/s/l in [0, 1] - see the comment above colorThemes.
 export function randomColor() {
-  return {
-    h: Math.floor(Math.random() * 360),
-    s: 60 + Math.floor(Math.random() * 25),
-    l: 45 + Math.floor(Math.random() * 15)
-  };
+  return { h: Math.random(), s: Math.random(), l: Math.random() };
 }
 
 export function formatDate(iso) {

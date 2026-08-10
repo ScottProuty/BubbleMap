@@ -13,9 +13,10 @@
 
 import { dom, settings, physicsParams } from './state.js';
 import { wakePhysics } from './physics.js';
-import { loadDoneBubbles, hideDoneBubbles } from './bubbles.js';
+import { loadDoneBubbles, hideDoneBubbles, refreshBubbleColors } from './bubbles.js';
 import bubbleRepository from './storage/bubbleRepository.js';
 import { isTauri } from './storage/storage.js';
+import { colorThemeNames, setColorTheme } from './utils.js';
 
 // Settings are only persisted to localStorage on the web (non-Tauri) deployment -
 // the desktop build will get its own persistence alongside its file-based bubble
@@ -32,12 +33,14 @@ function loadPersistedSettings() {
     if (Number.isFinite(saved.repelForce)) settings.repelForce = saved.repelForce;
     if (Number.isFinite(saved.maxDistance)) settings.maxDistance = saved.maxDistance;
     if (Number.isFinite(saved.linkDistance)) settings.linkDistance = saved.linkDistance;
+    if (typeof saved.colorTheme === 'string' && colorThemeNames().includes(saved.colorTheme)) settings.colorTheme = saved.colorTheme;
   } catch (e) {
     // Corrupt or unavailable localStorage (e.g. private browsing) - fall back to defaults.
   }
   physicsParams.REPEL_FORCE = settings.repelForce;
   physicsParams.MAX_DISTANCE = settings.maxDistance;
   physicsParams.LINK_DISTANCE = settings.linkDistance;
+  setColorTheme(settings.colorTheme);
 }
 
 // Runs once, as soon as this module is first imported - before BubbleMap.js starts
@@ -81,11 +84,13 @@ let settingsControlsBound = false;
 function bindSettingsControls() {
   const showCompletedInput = document.getElementById('showCompletedSetting');
   const repelForceInput = document.getElementById('repelForceSettingMenu');
+  const themeInput = document.getElementById('themeSettingMenu');
   const maxDistanceInput = document.getElementById('maxDistanceSettingMenu');
   const linkDistanceInput = document.getElementById('linkDistanceSettingMenu');
 
   showCompletedInput.checked = settings.showCompletedSetting;
   repelForceInput.value = settings.repelForce;
+  themeInput.value = settings.colorTheme;
   maxDistanceInput.value = settings.maxDistance;
   linkDistanceInput.value = settings.linkDistance;
 
@@ -102,6 +107,12 @@ function bindSettingsControls() {
     settings.repelForce = parseInt(repelForceInput.value, 10);
     settingsChangedSinceOpen = true;
     applySetting('repelForce');
+  });
+
+  themeInput.addEventListener('change', () => {
+    settings.colorTheme = themeInput.value;
+    settingsChangedSinceOpen = true;
+    applySetting('colorTheme');
   });
 
   maxDistanceInput.addEventListener('change', () => {
@@ -138,6 +149,10 @@ function applySetting(key) {
     case 'linkDistance':
       physicsParams.LINK_DISTANCE = settings.linkDistance;
       wakePhysics();
+      break;
+    case 'colorTheme':
+      setColorTheme(settings.colorTheme);
+      refreshBubbleColors();
       break;
   }
 }

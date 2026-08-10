@@ -16,7 +16,7 @@ function renderBubbleContent(bubble) {
   el.classList.toggle('done', !!bubble.done);
 
   const displayColor = bubble.done
-    ? { h: bubble.color.h, s: Math.round(bubble.color.s * 0.35), l: bubble.color.l }
+    ? { h: bubble.color.h, s: bubble.color.s * 0.35, l: bubble.color.l }
     : bubble.color;
   const displayColorCss = hslCss(displayColor);
   el.style.borderColor = displayColorCss;
@@ -132,6 +132,18 @@ function createBubbleElement(bubble) {
   renderBubbleContent(bubble);
   el.addEventListener('mousedown', (e) => onBubbleMouseDown(e, bubble));
   el.addEventListener('dblclick', (e) => e.stopPropagation());
+}
+
+// ---------- Color theme ----------
+
+// Re-renders every currently displayed bubble (and the links between them) so a
+// theme change takes effect immediately, without touching any bubble's stored
+// (normalized) color value.
+export function refreshBubbleColors() {
+  for (const b of state.bubbles.values()) {
+    renderBubbleContent(b);
+  }
+  rebuildLinksSVG();
 }
 
 // ---------- Selection ----------

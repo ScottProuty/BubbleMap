@@ -63,5 +63,6 @@ export const settings = {
   showCompletedSetting: false,
   repelForce: physicsParams.REPEL_FORCE,
   maxDistance: physicsParams.MAX_DISTANCE,
-  linkDistance: physicsParams.LINK_DISTANCE
+  linkDistance: physicsParams.LINK_DISTANCE,
+  colorTheme: 'Rainbow'
 };
