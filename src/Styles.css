@@ -12,6 +12,7 @@ html, body {
   color: #e6e6e6;
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
   user-select: none;
+  color-scheme: dark;
 }
 
 #toolbar {
@@ -428,10 +429,11 @@ html, body {
   width: 18px;
   height: 18px;
   accent-color: #6a6d75;
+  cursor: pointer;
 }
 
-.settings-row input[type="number"] {
-  width: 90px;
+.settings-row input[type="number"],
+.settings-row select {
   background: #1c1e22;
   border: 1px solid #3a3d43;
   border-radius: 6px;
@@ -441,8 +443,26 @@ html, body {
   padding: 5px 8px;
 }
 
-.settings-row input[type="number"]:focus {
+.settings-row input[type="number"] {
+  width: 90px;
+}
+
+.settings-row select {
+  cursor: pointer;
+}
+
+.settings-row select:hover {
+  border-color: #45484f;
+}
+
+.settings-row input[type="number"]:focus,
+.settings-row select:focus {
   outline: 1px solid #6a6d75;
+}
+
+.settings-row select option {
+  background: #1c1e22;
+  color: #e6e6e6;
 }
 
 .settings-actions {
