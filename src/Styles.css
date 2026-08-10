@@ -118,7 +118,7 @@ html, body {
 .bubble {
   position: absolute;
   min-width: 120px;
-  max-width: 260px;
+  max-width: 350px;
   padding: 10px 16px;
   border-radius: 18px;
   border: 2px solid #888;
