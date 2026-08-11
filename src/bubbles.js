@@ -9,6 +9,22 @@ import bubbleRepository from './storage/bubbleRepository.js';
 
 // ---------- Rendering ----------
 
+// While actively editing a bubble's title, widen the input to fit the full text
+// (even past the bubble's own edges) so what's being typed is never hidden.
+// Blurring resets it to the CSS default width, back to today's clipped look.
+let titleMeasureCanvas = null;
+function measureTextWidth(text, font) {
+  titleMeasureCanvas = titleMeasureCanvas || document.createElement('canvas');
+  const ctx = titleMeasureCanvas.getContext('2d');
+  ctx.font = font;
+  return ctx.measureText(text).width;
+}
+
+function widenTitleInputToContent(input) {
+  const width = measureTextWidth(input.value, getComputedStyle(input).font);
+  input.style.width = Math.ceil(width) + 12 + 'px';
+}
+
 function renderBubbleContent(bubble) {
   const el = bubble.el;
   clearEl(el);
@@ -104,7 +120,12 @@ function renderBubbleContent(bubble) {
     actions.appendChild(delBtn);
     el.appendChild(actions);
 
-    titleInput.addEventListener('blur', () => commitTitle(bubble, titleInput.value));
+    titleInput.addEventListener('focus', () => widenTitleInputToContent(titleInput));
+    titleInput.addEventListener('input', () => widenTitleInputToContent(titleInput));
+    titleInput.addEventListener('blur', () => {
+      titleInput.style.width = '';
+      commitTitle(bubble, titleInput.value);
+    });
     titleInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); titleInput.blur(); }
     });
