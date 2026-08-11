@@ -157,9 +157,16 @@ export function refreshBubbleColors() {
 export function selectBubble(bubble) {
   if (state.selectedBubble === bubble) return;
   if (state.selectedBubble) deselectBubble(state.selectedBubble);
+  const closedWidth = bubble.el.offsetWidth;
   bubble.selected = true;
   state.selectedBubble = bubble;
   renderBubbleContent(bubble);
+  // The expanded layout (title input + description + actions) can end up
+  // narrower than the closed title-only layout - never let expanding make the
+  // bubble shrink.
+  if (bubble.el.offsetWidth < closedWidth) {
+    bubble.el.style.minWidth = closedWidth + 'px';
+  }
   wakePhysics();
 }
 
@@ -173,6 +180,7 @@ export function deselectBubble(bubble) {
 
   bubble.selected = false;
   if (state.selectedBubble === bubble) state.selectedBubble = null;
+  bubble.el.style.minWidth = '';
   renderBubbleContent(bubble);
   wakePhysics();
 }
