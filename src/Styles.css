@@ -194,6 +194,7 @@ html, body {
 .bubble-description:focus,
 .bubble-title-input:focus {
   outline: 1px solid #6a6d75;
+  background: #303237;
 }
 
 .bubble-description-readonly {
