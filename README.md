@@ -4,7 +4,7 @@ BubbleMap is a small, visual note board for jotting down tasks and ideas as "bub
 
 ## Two ways to use:
 ### Web version
-This is the easiest to use - just go to the [www.scottlprouty.com/BubbleMap|BubbleMap website] and you're there. 
+This is the easiest to use - just go to the [BubbleMap website](scottlprouty.com/BubbleMap) and you're there. 
 The web version saves your work in your browser's local web data files - note that these will be erased if you clear your browsing data via your browser's settings! It is recommended to make use of the **Save Backup** and **Recall Backup** buttons to backup and move your data. This also means that your work is not automatically synced between browsers or devices.
 
 ### Desktop version 🆕
