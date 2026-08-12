@@ -122,8 +122,10 @@ dist
 # TernJS port file
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
+# VSCode
 .vscode-test
+.vscode/*
+!.vscode/extensions.json
 
 # pnpm
 .pnpm-store
@@ -141,3 +143,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Misc
+dist-ssr
+*.local
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

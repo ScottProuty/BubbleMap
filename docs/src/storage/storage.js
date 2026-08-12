@@ -10,10 +10,10 @@
 // setting.
 //
 // The dynamic import() below is what lets this run in a plain static/GitHub Pages
-// deployment at all: desktopStorage.js imports Tauri npm packages as bare
-// specifiers that a bundler-free browser can't resolve, but since that branch is
-// only ever imported when isTauri() is true, the browser never attempts to fetch
-// or evaluate it on a non-Tauri deployment.
+// deployment at all: desktopStorage.js reads its fs/dialog APIs off window.__TAURI__
+// (see the comment there), which doesn't exist outside a Tauri webview - but since
+// that branch is only ever imported when isTauri() is true, the browser never
+// attempts to fetch or evaluate it on a non-Tauri deployment.
 
 export function isTauri() {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;

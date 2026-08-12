@@ -1,19 +1,17 @@
 // Tauri-backed storage for the desktop deployment.
 //
-// NOT FUNCTIONAL YET. This module assumes a Tauri v2 project will be scaffolded
-// around this app in a later, separate task, providing:
-//   - npm packages @tauri-apps/plugin-fs and @tauri-apps/plugin-dialog
-//   - a bundler (e.g. Vite) in that scaffolded project, since these are
-//     bare-specifier npm imports that a plain browser (or an unbundled webview)
-//     can't resolve - this repo currently has no bundler, so this file can't be
-//     exercised until scaffolding adds one
-//   - the fs/dialog plugins registered on the Rust side (src-tauri/src/main.rs)
-//   - capabilities granted in src-tauri/capabilities/default.json, at minimum:
-//       fs:allow-read-text-file, fs:allow-write-text-file, fs:allow-exists,
-//       fs:allow-mkdir, fs:allow-copy-file - scoped to $DOCUMENT/BubbleMap/**
-//       dialog:allow-open, dialog:allow-save
-import { readTextFile, writeTextFile, exists, mkdir, copyFile, BaseDirectory } from '@tauri-apps/plugin-fs';
-import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
+// This repo has no bundler, so the fs/dialog plugin JS can't be pulled in via
+// bare npm imports (`@tauri-apps/plugin-fs` etc.) - a plain browser/webview can't
+// resolve those specifiers without one. Instead, with `app.withGlobalTauri: true`
+// (see src-tauri/tauri.conf.json) and the plugins registered on the Rust side
+// (src-tauri/src/lib.rs), Tauri injects each plugin's API directly onto
+// `window.__TAURI__` at runtime, so it's read off there instead.
+//
+// Also requires capabilities granted in src-tauri/capabilities/default.json:
+//   fs:allow-document-read-recursive, fs:allow-document-write-recursive,
+//   dialog:allow-open, dialog:allow-save
+const { readTextFile, writeTextFile, exists, mkdir, copyFile, BaseDirectory } = window.__TAURI__.fs;
+const { open: openDialog, save: saveDialog } = window.__TAURI__.dialog;
 
 const CANONICAL_DIR = 'BubbleMap';
 const CANONICAL_FILE = 'BubbleMap/bubbles.json'; // resolved relative to BaseDirectory.Document

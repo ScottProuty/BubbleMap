@@ -2,7 +2,14 @@
 
 BubbleMap is a small, visual note board for jotting down tasks and ideas as "bubbles" you can drag around, link together, and organize like a mind map. And there are colors!
 
-There are two deployments of BubbleMap - a web version, and a desktop version (coming soon!).
+## Two ways to use:
+### Web version
+This is the easiest to use - just go to the [www.scottlprouty.com/BubbleMap|BubbleMap website] and you're there. 
+The web version saves your work in your browser's local web data files - note that these will be erased if you clear your browsing data via your browser's settings! It is recommended to make use of the **Save Backup** and **Recall Backup** buttons to backup and move your data. This also means that your work is not automatically synced between browsers or devices.
+
+### Desktop version 🆕
+If you prefer to use BubbleMap as a separate, standalone application, download the installer exe here. 
+The desktop version stores your data in the local documents folder.
 
 ## How to use BubbleMap
 
@@ -42,11 +49,10 @@ Click **Settings** in the toolbar to:
 ## No nonsense
 
 BubbleMap doesn't have an account system or a server storing your notes, primarily because I don't know how do do that.
-The upside is that this makes everything private and local per user. For the web version, your data is stored in your browser's "IndexedDB" file (warning: this may get erased if you use your browser's "clear browsing data" buttons! You've been warned!)
-The downside is, there is no automatic sync between devices or even browsers. Make use of the **Save Backup** and **Recall Backup** buttons to backup and move your data.
+The upside is that this makes everything private and local.
 
 ## Want to support me?
-Wow, so generous. Now scram - give that money to your favorite Wikipedia Foundation.
+Wow, so generous. Now scram - give that money to your favorite Wikimedia Foundation.
 
 ## License
 MIT license because that sounds smart. idk
