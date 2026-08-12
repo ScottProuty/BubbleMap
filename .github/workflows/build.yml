@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write  # Allow writing releases
+  contents: write
 
 jobs:
   build:
@@ -26,6 +26,17 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+      
+      - name: Update tauri.conf.json
+        run: |
+          npm install -g json
+          json -I -f src-tauri/tauri.conf.json -e "this.version='${{ steps.version.outputs.VERSION }}'"
+        shell: bash
       
       - name: Setup Node
         uses: actions/setup-node@v4
