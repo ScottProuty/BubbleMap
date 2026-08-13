@@ -34,8 +34,13 @@ jobs:
       
       - name: Update tauri.conf.json
         run: |
-          npm install -g json
-          json -I -f src-tauri/tauri.conf.json -e "this.version='${{ steps.version.outputs.VERSION }}'"
+          node -e "
+          const fs = require('fs');
+          const path = 'src-tauri/tauri.conf.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+          config.version = '${{ steps.version.outputs.VERSION }}';
+          fs.writeFileSync(path, JSON.stringify(config, null, 2));
+          "
         shell: bash
       
       - name: Setup Node
