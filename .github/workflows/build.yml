@@ -64,7 +64,13 @@ jobs:
       
       - name: Build
         run: npm run tauri build
-      
+
+      - name: List build artifacts
+        run: |
+          echo "=== Listing all bundle files ==="
+          find src-tauri/target/release/bundle -type f -ls
+        shell: bash
+  
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         with:
