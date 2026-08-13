@@ -10,13 +10,10 @@ The web version saves your work in your browser's local web data files - note th
 ### Desktop version 🆕
 If you prefer to use BubbleMap as a separate, standalone application.
 The desktop version stores your data in the local documents folder.
-Find the latest version in the **Releases** section, or here:
-#### **Windows**
-[bubblemap_1.0.5_x64-setup.exe](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/bubblemap_1.0.5_x64-setup.exe)
-#### **macOS**
-[BubbleMap_1.0.5_x64.dmg](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/BubbleMap_1.0.5_x64.dmg)
-#### **Linux (Ubuntu/Debian)**
-[bubblemap_1.0.5_amd64.AppImage](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/bubblemap_1.0.5_amd64.AppImage)
+There are versions for Windows, Linux/Ubuntu/Debian, and macOS (Apple silicon), and macOS (Intel silicon). Note that I mostly only test on Windows 11, so if you find bugs please let me know in the Issues section.
+
+Find the latest version for your OS in the [**Releases**](https://github.com/ScottProuty/BubbleMap/releases) section.
+
 
 ## How to use BubbleMap
 
