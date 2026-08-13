@@ -21,8 +21,16 @@ function measureTextWidth(text, font) {
 }
 
 function widenTitleInputToContent(input) {
-  const width = measureTextWidth(input.value, getComputedStyle(input).font);
-  input.style.width = Math.ceil(width) + 12 + 'px';
+  const textWidth = Math.ceil(measureTextWidth(input.value, getComputedStyle(input).font)) + 12;
+  // Measure the input's natural (un-overridden) width before deciding whether
+  // an explicit wider width is actually needed, so short titles that already
+  // fit don't get shrunk down to their content width - staying at the input's
+  // normal full-bubble width keeps it (and its centered text) from jumping.
+  input.style.width = '';
+  const naturalWidth = input.offsetWidth;
+  if (textWidth > naturalWidth) {
+    input.style.width = textWidth + 'px';
+  }
 }
 
 function renderBubbleContent(bubble) {

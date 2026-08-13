@@ -159,7 +159,9 @@ html, body {
 }
 
 .bubble-title-input {
+  display: block;
   width: 100%;
+  margin: 0 auto;
   text-align: center;
   background: transparent;
   border: none;
@@ -167,7 +169,6 @@ html, body {
   color: #e6e6e6;
   font-weight: 600;
   font-size: 15px;
-  text-align: center;
   font-family: inherit;
 }
 
