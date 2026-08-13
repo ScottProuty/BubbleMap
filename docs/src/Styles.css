@@ -160,6 +160,7 @@ html, body {
 
 .bubble-title-input {
   width: 100%;
+  text-align: center;
   background: transparent;
   border: none;
   outline: none;
