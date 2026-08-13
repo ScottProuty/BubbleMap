@@ -8,8 +8,15 @@ This is the easiest to use - just go to the [BubbleMap website](scottlprouty.com
 The web version saves your work in your browser's local web data files - note that these will be erased if you clear your browsing data via your browser's settings! It is recommended to make use of the **Save Backup** and **Recall Backup** buttons to backup and move your data. This also means that your work is not automatically synced between browsers or devices.
 
 ### Desktop version 🆕
-If you prefer to use BubbleMap as a separate, standalone application, download the installer exe here. 
+If you prefer to use BubbleMap as a separate, standalone application.
 The desktop version stores your data in the local documents folder.
+Find the latest version in the **Releases** section, or here:
+#### **Windows**
+[bubblemap_1.0.5_x64-setup.exe](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/bubblemap_1.0.5_x64-setup.exe)
+#### **macOS**
+[BubbleMap_1.0.5_x64.dmg](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/BubbleMap_1.0.5_x64.dmg)
+#### **Linux (Ubuntu/Debian)**
+[bubblemap_1.0.5_amd64.AppImage](https://github.com/ScottProuty/BubbleMap/releases/download/v1.0.5/bubblemap_1.0.5_amd64.AppImage)
 
 ## How to use BubbleMap
 
