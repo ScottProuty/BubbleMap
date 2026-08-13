@@ -71,15 +71,29 @@ jobs:
           find src-tauri/target/release/bundle -type f -ls
         shell: bash
   
-      - name: Upload artifacts
+      - name: Upload artifacts (Windows)
+        if: runner.os == 'Windows'
         uses: softprops/action-gh-release@v2
         with:
           files: |
             src-tauri/target/release/bundle/msi/*
             src-tauri/target/release/bundle/nsis/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts (macOS)
+        if: runner.os == 'macOS'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
             src-tauri/target/release/bundle/dmg/*
             src-tauri/target/release/bundle/macos/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts (Linux)
+        if: runner.os == 'Linux'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
             src-tauri/target/release/bundle/appimage/*
             src-tauri/target/release/bundle/deb/*
           token: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(github.ref, 'refs/tags/')
