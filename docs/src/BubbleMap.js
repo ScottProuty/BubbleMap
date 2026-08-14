@@ -11,7 +11,8 @@ import { openSettings, closeSettings, saveBackup, recallBackup } from './setting
 // ---------- Canvas pan / zoom / creation ----------
 
 dom.canvasEl.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
+  if (e.button !== 0 && e.button !== 1) return;
+  if (e.button === 1) e.preventDefault();
   if (state.selectedBubble) deselectBubble(state.selectedBubble);
   state.isPanning = true;
   dom.canvasEl.classList.add('panning');
