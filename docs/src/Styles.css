@@ -249,6 +249,59 @@ html, body {
   display: none !important;
 }
 
+#selectionBox {
+  position: fixed;
+  border: 3px dotted #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  z-index: 15;
+}
+
+#selectionActionsPanel {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  background: #2a2c31;
+  border: 1px solid #45484f;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+#selectionActionsPanel.open {
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+#selectionActionsPanel button {
+  min-width: 130px;
+}
+
+#selectionDeleteAllBtn:hover {
+  background: #5a2a2a;
+  border-color: #7a3a3a;
+}
+
+#selectionMarkDoneBtn:hover {
+  background: #2a4a34;
+  border-color: #3a6a44;
+}
+
+#selectionMarkDoneBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #2a2c31;
+  border-color: #45484f;
+}
+
 #doneListOverlay {
   position: fixed;
   top: 0;

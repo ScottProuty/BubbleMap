@@ -4,7 +4,8 @@
 import { dom, state, settings, physicsParams } from './state.js';
 import { clearEl, hslCss, randomColor, formatDate, positionEl, screenToWorld } from './utils.js';
 import { findDropTarget, highlightDropTarget, clearDropHighlight, linkBubbles, rebuildLinksSVG } from './linking.js';
-import { wakePhysics, pauseDragPhysics, tick } from './physics.js';
+import { wakePhysics, pausePhysics, tick } from './physics.js';
+import { resetSelection } from './selection.js';
 import bubbleRepository from './storage/bubbleRepository.js';
 
 // ---------- Rendering ----------
@@ -275,6 +276,20 @@ function deleteBubble(bubble) {
   });
 }
 
+// ---------- Bulk actions (rectangular multi-select, see src/selection.js) ----------
+
+export function deleteBubbles(bubbles) {
+  bubbles.forEach(deleteBubble);
+}
+
+export function markBubblesDone(bubbles) {
+  bubbles.forEach(markDone);
+}
+
+export function unmarkBubblesDone(bubbles) {
+  bubbles.forEach(unmarkBubbleFromMainView);
+}
+
 function removeBubbleFromMainView(bubble) {
   if (state.selectedBubble === bubble) state.selectedBubble = null;
   bubble.el.remove();
@@ -383,8 +398,19 @@ function onBubbleMouseDown(e, bubble) {
   if (bubble.creating) return;
   e.stopPropagation();
 
+  // Dragging a bubble that's part of the active rectangular multi-selection
+  // moves the whole group. Interacting with any other bubble while a
+  // multi-selection exists drops that selection first (see src/selection.js).
+  const groupDrag = state.selectedBubbles.size > 1 && state.selectedBubbles.has(bubble);
+  if (!groupDrag && state.selectedBubbles.size > 1) {
+    resetSelection();
+  }
+
   const startScreen = { x: e.clientX, y: e.clientY };
   const startWorld = { x: bubble.x, y: bubble.y };
+  const groupStart = groupDrag
+    ? Array.from(state.selectedBubbles).map((b) => ({ bubble: b, x: b.x, y: b.y }))
+    : null;
   let dragStarted = false;
   const threshold = 5;
 
@@ -393,21 +419,36 @@ function onBubbleMouseDown(e, bubble) {
     const dyScreen = ev.clientY - startScreen.y;
     if (!dragStarted && Math.hypot(dxScreen, dyScreen) > threshold) {
       dragStarted = true;
-      state.draggingBubble = bubble;
-      bubble.el.classList.add('dragging');
-      wakePhysics();
+      if (groupDrag) {
+        groupStart.forEach(({ bubble: b }) => b.el.classList.add('dragging'));
+      } else {
+        state.draggingBubble = bubble;
+        bubble.el.classList.add('dragging');
+        wakePhysics();
+      }
     }
     if (dragStarted) {
-      bubble.x = startWorld.x + dxScreen / state.zoom;
-      bubble.y = startWorld.y + dyScreen / state.zoom;
-      positionEl(bubble);
-      rebuildLinksSVG();
-      const target = findDropTarget(bubble);
-      highlightDropTarget(bubble, target);
-      if (target) {
-        pauseDragPhysics();
+      if (groupDrag) {
+        // Physics stays asleep for the whole group drag - see resetSelection().
+        const dxWorld = dxScreen / state.zoom, dyWorld = dyScreen / state.zoom;
+        groupStart.forEach(({ bubble: b, x, y }) => {
+          b.x = x + dxWorld;
+          b.y = y + dyWorld;
+          positionEl(b);
+        });
+        rebuildLinksSVG();
       } else {
-        wakePhysics();
+        bubble.x = startWorld.x + dxScreen / state.zoom;
+        bubble.y = startWorld.y + dyScreen / state.zoom;
+        positionEl(bubble);
+        rebuildLinksSVG();
+        const target = findDropTarget(bubble);
+        highlightDropTarget(bubble, target);
+        if (target) {
+          pausePhysics();
+        } else {
+          wakePhysics();
+        }
       }
     }
   }
@@ -415,6 +456,16 @@ function onBubbleMouseDown(e, bubble) {
   function onUp() {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
+    if (groupDrag) {
+      if (dragStarted) {
+        groupStart.forEach(({ bubble: b }) => b.el.classList.remove('dragging'));
+        rebuildLinksSVG();
+      } else {
+        resetSelection();
+        selectBubble(bubble);
+      }
+      return;
+    }
     if (dragStarted) {
       bubble.el.classList.remove('dragging');
       state.draggingBubble = null;

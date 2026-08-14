@@ -125,10 +125,11 @@ function stepPhysics(dt) {
   return totalMovement;
 }
 
-// While a dragged bubble is hovering over a valid drop target, physics is paused so
-// the highlighted target doesn't drift or get repelled away before the user can
-// release the mouse to link. pauseDragPhysics()/wakePhysics() toggle this.
-export function pauseDragPhysics() {
+// Pauses the physics loop outright - used while a dragged bubble hovers over a
+// valid drop target (so the highlighted target doesn't drift away before the
+// user can release the mouse to link) and while a rectangular multi-selection
+// is active (see src/selection.js). wakePhysics() resumes it.
+export function pausePhysics() {
   state.physicsPaused = true;
 }
 

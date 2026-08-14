@@ -7,17 +7,23 @@ import { startCreateBubble, deselectBubble, loadBubbles } from './bubbles.js';
 import { updateLinkHover } from './linking.js';
 import { openDoneList, closeDoneList } from './doneList.js';
 import { openSettings, closeSettings, saveBackup, recallBackup } from './settings.js';
+import { startBoxSelect, resetSelection, deleteAllSelected, toggleDoneAllSelected } from './selection.js';
 
 // ---------- Canvas pan / zoom / creation ----------
 
 dom.canvasEl.addEventListener('mousedown', (e) => {
-  if (e.button !== 0 && e.button !== 1) return;
-  if (e.button === 1) e.preventDefault();
+  if (e.button === 1) {
+    e.preventDefault();
+    if (state.selectedBubble) deselectBubble(state.selectedBubble);
+    state.isPanning = true;
+    dom.canvasEl.classList.add('panning');
+    state.panStartScreen = { x: e.clientX, y: e.clientY };
+    state.panStartPan = { x: state.pan.x, y: state.pan.y };
+    return;
+  }
+  if (e.button !== 0) return;
   if (state.selectedBubble) deselectBubble(state.selectedBubble);
-  state.isPanning = true;
-  dom.canvasEl.classList.add('panning');
-  state.panStartScreen = { x: e.clientX, y: e.clientY };
-  state.panStartPan = { x: state.pan.x, y: state.pan.y };
+  startBoxSelect(e);
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -64,8 +70,22 @@ dom.canvasEl.addEventListener('dblclick', (e) => {
 });
 
 dom.addBubbleBtn.addEventListener('click', () => {
+  resetSelection();
   const worldPt = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
   startCreateBubble(worldPt.x, worldPt.y);
+});
+
+dom.selectionDeleteAllBtn.addEventListener('click', deleteAllSelected);
+dom.selectionMarkDoneBtn.addEventListener('click', toggleDoneAllSelected);
+
+document.addEventListener('keydown', (e) => {
+  if (!state.selectedBubbles.size) return;
+  if (e.key === 'Escape') {
+    resetSelection();
+  } else if (e.key === 'Backspace' || e.key === 'Delete') {
+    e.preventDefault();
+    deleteAllSelected();
+  }
 });
 
 dom.doneListBtn.addEventListener('click', openDoneList);

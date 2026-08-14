@@ -17,7 +17,11 @@ export const dom = {
   settingsOverlay: document.getElementById('settingsOverlay'),
   settingsCloseBtn: document.getElementById('settingsCloseBtn'),
   saveBackupBtn: document.getElementById('saveBackupBtn'),
-  recallBackupBtn: document.getElementById('recallBackupBtn')
+  recallBackupBtn: document.getElementById('recallBackupBtn'),
+  selectionBoxEl: document.getElementById('selectionBox'),
+  selectionActionsPanel: document.getElementById('selectionActionsPanel'),
+  selectionDeleteAllBtn: document.getElementById('selectionDeleteAllBtn'),
+  selectionMarkDoneBtn: document.getElementById('selectionMarkDoneBtn')
 };
 
 // Physics knobs that are user-adjustable from the Settings modal - see
@@ -32,6 +36,7 @@ export const physicsParams = {
 export const state = {
   bubbles: new Map(),
   selectedBubble: null,
+  selectedBubbles: new Set(),
   creatingBubble: null,
   draggingBubble: null,
 
