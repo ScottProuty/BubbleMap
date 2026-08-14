@@ -6,7 +6,7 @@ import { hslCss, distanceToSegment, clearEl, randomColor } from './utils.js';
 import { persistBubble } from './bubbles.js';
 import { wakePhysics } from './physics.js';
 
-const CHILD_HUE_JITTER = 10 / 360; // Random +/- fraction of the full hue range a child's hue may drift from its parent's
+const CHILD_HUE_JITTER = 10 / 360; // Fraction of the full hue range a single-parent child's hue is shifted from its parent's
 const OVERLAP_THRESHOLD = 110; // Distance between dragged and target bubble to allow drop for linkage
 const LINK_HOVER_THRESHOLD = 10;
 
@@ -38,6 +38,27 @@ function averageHue(hues) {
   return avg;
 }
 
+// Climbs the single-parent chain starting at `parent` until it reaches an
+// ancestor with no parents or with more than one parent (a split), which is
+// the node whose ID decides a single-parent child's hue direction.
+function findHueDirectionSource(parent) {
+  let current = parent;
+  const visited = new Set();
+  while (current.parents.length === 1 && !visited.has(current.id)) {
+    visited.add(current.id);
+    const next = state.bubbles.get(current.parents[0]);
+    if (!next) break;
+    current = next;
+  }
+  return current;
+}
+
+// First hex digit 0-7 drifts hue down, 8-F drifts it up, so unrelated chains
+// spread apart instead of drifting the same direction.
+function hueDirectionFromId(id) {
+  return '01234567'.includes(id[0].toLowerCase()) ? -1 : 1;
+}
+
 function computeColorFromParents(bubble) {
   if (!bubble.parents.length) return randomColor();
   const parentColors = bubble.parents.map((pid) => state.bubbles.get(pid)).filter(Boolean).map((p) => p.color);
@@ -45,10 +66,15 @@ function computeColorFromParents(bubble) {
   const avgH = averageHue(parentColors.map((c) => c.h));
   const avgS = parentColors.reduce((s, c) => s + c.s, 0) / parentColors.length;
   const avgL = parentColors.reduce((s, c) => s + c.l, 0) / parentColors.length;
-  const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
-  const hueJitter = plusOrMinus * CHILD_HUE_JITTER;
-  const jitteredHue = ((avgH + hueJitter) % 1 + 1) % 1;
-  return { h: jitteredHue, s: avgS, l: Math.min(1, avgL + 0.1) };
+
+  let finalHue = avgH;
+  if (bubble.parents.length === 1) {
+    const parent = state.bubbles.get(bubble.parents[0]);
+    const direction = parent ? hueDirectionFromId(findHueDirectionSource(parent).id) : 1;
+    finalHue = ((avgH + direction * CHILD_HUE_JITTER) % 1 + 1) % 1;
+  }
+
+  return { h: finalHue, s: avgS, l: Math.min(1, avgL + 0.1) };
 }
 
 function recomputeColorsFrom(bubble) {
