@@ -68,16 +68,28 @@ function openSettings() {
   settingsChangedSinceOpen = false;
   settingsOpen = true;
   dom.settingsPanel.classList.add('open');
+  dom.settingsBtn.classList.add('open');
 }
 
 function closeSettings() {
   settingsOpen = false;
   dom.settingsPanel.classList.remove('open');
+  dom.settingsBtn.classList.remove('open');
   if (settingsChangedSinceOpen) {
     persistSettings();
     settingsChangedSinceOpen = false;
   }
 }
+
+// Lines the panel's top edge up with the top of the gear/Settings button,
+// whatever that button's actual rendered height turns out to be, rather than
+// hardcoding it to match the toolbar layout in CSS.
+function alignSettingsPanelTop() {
+  const top = dom.settingsBtn.getBoundingClientRect().top;
+  dom.settingsPanel.style.top = top + 'px';
+  dom.settingsPanel.style.maxHeight = `calc(100vh - ${top}px)`;
+}
+alignSettingsPanelTop();
 
 // The gear button toggles the panel: slides it in from off-screen on the left,
 // then slides it back out on the next click. No backdrop - the canvas stays

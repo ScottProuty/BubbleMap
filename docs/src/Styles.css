@@ -39,15 +39,26 @@ html, body {
   background: #35383e;
 }
 
-#addBubbleBtn, #SettingsBtn {
+#addBubbleBtn {
   width: 38px;
   height: 38px;
   line-height: 1;
   padding: 0;
 }
 
+/* Slides along with #settingsPanel (see toggleSettings()) but a shorter
+   distance, so part of the button still pokes out past the panel's right
+   edge when open - a visual cue that it's still there to click and close it.
+   translateX(calc(348px - 100%)) lands the button's right edge exactly
+   24px past the (340px-wide) open panel's right edge, however wide the
+   button itself renders ("100%" in a transform is relative to the
+   element's own box). */
 #SettingsBtn {
-  font-size: 18px;
+  transition: transform 0.25s ease;
+}
+
+#SettingsBtn.open {
+  transform: translateX(calc(348px - 100%));
 }
 
 #canvas {
@@ -435,9 +446,12 @@ html, body {
 
 #settingsPanel {
   position: fixed;
-  top: 0;
+  /* Fallback until settings.js aligns this with #SettingsBtn's actual
+     rendered top - see the assignment there. */
+  top: 64px;
   left: 0;
   height: auto;
+  max-height: calc(100vh - 64px);
   width: 340px;
   max-width: 85vw;
   overflow-y: auto;
@@ -445,7 +459,6 @@ html, body {
   border-right: 1px solid #3a3d43;
   box-shadow: 4px 0 18px rgba(0,0,0,0.35);
   padding: 20px;
-  padding-top: 180px;
   z-index: 25;
   transform: translateX(-100%);
   transition: transform 0.25s ease;
