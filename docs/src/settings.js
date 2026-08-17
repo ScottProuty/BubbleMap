@@ -1,14 +1,15 @@
-// The Settings modal (physics tuning + show-completed toggle) and backup save/recall.
+// The Settings panel (physics tuning + show-completed toggle) and backup save/recall.
+// It's a sliding panel toggled by the gear button, not a modal - see toggleSettings().
 //
 // FRAMEWORK - to add a new setting:
 //   1. In index.html, add a ".settings-row" inside #settingsBody with a label and
 //      an input/select/checkbox for the setting (see the example comment there).
 //   2. Add a key + default value for it to the `settings` object in src/state.js.
 //   3. In `bindSettingsControls()`, look up the control by id and sync its value from
-//      `settings.<key>` (this part runs every time the modal opens). Then, inside the
+//      `settings.<key>` (this part runs every time the panel opens). Then, inside the
 //      `if (settingsControlsBound) return;` guard, add a change/input listener that
 //      updates `settings.<key>` and calls `applySetting('<key>')`. The guard ensures the
-//      listener is only attached once, no matter how many times the modal is reopened.
+//      listener is only attached once, no matter how many times the panel is reopened.
 //   4. In `applySetting()`, add a case for `<key>` that makes the setting take effect.
 
 import { dom, settings, physicsParams } from './state.js';
@@ -57,21 +58,35 @@ function persistSettings() {
   }
 }
 
-// True once a setting has actually been changed since the modal was last opened,
+// True once a setting has actually been changed since the panel was last opened,
 // so closeSettings() only writes to localStorage when there's something new to save.
 let settingsChangedSinceOpen = false;
+let settingsOpen = false;
 
-export function openSettings() {
+function openSettings() {
   bindSettingsControls();
   settingsChangedSinceOpen = false;
-  dom.settingsOverlay.classList.remove('hidden');
+  settingsOpen = true;
+  dom.settingsPanel.classList.add('open');
 }
 
-export function closeSettings() {
-  dom.settingsOverlay.classList.add('hidden');
+function closeSettings() {
+  settingsOpen = false;
+  dom.settingsPanel.classList.remove('open');
   if (settingsChangedSinceOpen) {
     persistSettings();
     settingsChangedSinceOpen = false;
+  }
+}
+
+// The gear button toggles the panel: slides it in from off-screen on the left,
+// then slides it back out on the next click. No backdrop - the canvas stays
+// interactive (and pannable) behind the panel the whole time.
+export function toggleSettings() {
+  if (settingsOpen) {
+    closeSettings();
+  } else {
+    openSettings();
   }
 }
 

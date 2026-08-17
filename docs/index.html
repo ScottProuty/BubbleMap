@@ -9,7 +9,7 @@
 <body>
   <div id="toolbar">
     <button id="addBubbleBtn" title="Add Bubble">+</button>
-    <button id="SettingsBtn">Settings</button>
+    <button id="SettingsBtn" title="Settings">⚙️</button>
     <button id="doneListBtn">Done List</button>
   </div>
 
@@ -32,67 +32,64 @@
     </div>
   </div>
 
-  <div id="settingsOverlay" class="hidden">
-    <div id="settingsModal">
-      <button id="settingsCloseBtn" class="close-btn" title="Close">&times;</button>
-      <h2>Settings</h2>
-      <div id="settingsBody">
-        <!--
-          SETTINGS FRAMEWORK
-          Add each new setting as its own ".settings-row" here, then wire it up in
-          src/settings.js (see the comment there for the full checklist).
+  <div id="settingsPanel">
+    <h2>Settings</h2>
+    <div id="settingsBody">
+      <!--
+        SETTINGS FRAMEWORK
+        Add each new setting as its own ".settings-row" here, then wire it up in
+        src/settings.js (see the comment there for the full checklist).
 
-          Example row:
-            <div class="settings-row">
-              <label for="exampleSetting">Example Setting</label>
-              <input type="checkbox" id="exampleSetting">
-            </div>
-        -->
-        <div class="settings-row">
-          <label for="showCompletedSetting">Show Completed</label>
-          <input type="checkbox" id="showCompletedSetting">
-        </div>
-        <div class="settings-row">
-          <label for="themeSettingMenu">Theme:</label>
-          <select name="themeSetting" id="themeSettingMenu">
-            <option>Rainbow</option>
-            <option>Sunset</option>
-            <option>Vibrant</option>
-            <option>Pastel</option>
-            <option>Muted</option>
-            <option>Mono Blue</option>
-            <option>Grayscale</option>
-          </select>
-        </div>
-        <div class="settings-row">
-          <label for="repelForceSettingMenu">Repel Force</label>
-          <select name="repelForceSetting" id="repelForceSettingMenu">
-            <option value="140">Low</option>
-            <option value="180">Med</option>
-            <option value="210">High</option>
-          </select>
-        </div>
-        <div class="settings-row">
-          <label for="maxDistanceSettingMenu">Max Distance</label>
-          <select name="maxDistanceSetting" id="maxDistanceSettingMenu">
-            <option value="380">Low</option>
-            <option value="420">Med</option>
-            <option value="460">High</option>
-          </select>
-        </div>
-        <div class="settings-row">
-          <label for="linkDistanceSettingMenu">Link Distance</label>
-          <select name="linkDistanceSetting" id="linkDistanceSettingMenu">
-            <option value="100">Low</option>
-            <option value="140">Med</option>
-            <option value="170">High</option>
-          </select>
-        </div>
+        Example row:
+          <div class="settings-row">
+            <label for="exampleSetting">Example Setting</label>
+            <input type="checkbox" id="exampleSetting">
+          </div>
+      -->
+      <div class="settings-row">
+        <label for="showCompletedSetting">Show Completed</label>
+        <input type="checkbox" id="showCompletedSetting">
       </div>
-      <div class="settings-actions">
-        <button id="saveBackupBtn" class="settings-btn">Save Backup</button>
-        <button id="recallBackupBtn" class="settings-btn">Recall Backup</button>
+      <div class="settings-row">
+        <label for="themeSettingMenu">Theme:</label>
+        <select name="themeSetting" id="themeSettingMenu">
+          <option>Rainbow</option>
+          <option>Sunset</option>
+          <option>Vibrant</option>
+          <option>Pastel</option>
+          <option>Muted</option>
+          <option>Mono Blue</option>
+          <option>Grayscale</option>
+        </select>
       </div>
+      <div class="settings-row">
+        <label for="repelForceSettingMenu">Repel Force</label>
+        <select name="repelForceSetting" id="repelForceSettingMenu">
+          <option value="140">Low</option>
+          <option value="180">Med</option>
+          <option value="210">High</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="maxDistanceSettingMenu">Max Distance</label>
+        <select name="maxDistanceSetting" id="maxDistanceSettingMenu">
+          <option value="380">Low</option>
+          <option value="420">Med</option>
+          <option value="460">High</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="linkDistanceSettingMenu">Link Distance</label>
+        <select name="linkDistanceSetting" id="linkDistanceSettingMenu">
+          <option value="100">Low</option>
+          <option value="140">Med</option>
+          <option value="170">High</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button id="saveBackupBtn" class="settings-btn">Save Backup</button>
+      <button id="recallBackupBtn" class="settings-btn">Recall Backup</button>
     </div>
   </div>
 

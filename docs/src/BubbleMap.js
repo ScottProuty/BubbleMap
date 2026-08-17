@@ -6,7 +6,7 @@ import { applyTransform, screenToWorld } from './utils.js';
 import { startCreateBubble, deselectBubble, loadBubbles } from './bubbles.js';
 import { updateLinkHover } from './linking.js';
 import { openDoneList, closeDoneList } from './doneList.js';
-import { openSettings, closeSettings, saveBackup, recallBackup } from './settings.js';
+import { toggleSettings, saveBackup, recallBackup } from './settings.js';
 import { startBoxSelect, resetSelection, deleteAllSelected, toggleDoneAllSelected } from './selection.js';
 
 // ---------- Canvas pan / zoom / creation ----------
@@ -94,11 +94,7 @@ dom.doneListOverlay.addEventListener('mousedown', (e) => {
   if (e.target === dom.doneListOverlay) closeDoneList();
 });
 
-dom.settingsBtn.addEventListener('click', openSettings);
-dom.settingsCloseBtn.addEventListener('click', closeSettings);
-dom.settingsOverlay.addEventListener('mousedown', (e) => {
-  if (e.target === dom.settingsOverlay) closeSettings();
-});
+dom.settingsBtn.addEventListener('click', toggleSettings);
 dom.saveBackupBtn.addEventListener('click', saveBackup);
 dom.recallBackupBtn.addEventListener('click', recallBackup);
 
