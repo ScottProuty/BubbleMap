@@ -437,7 +437,7 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
+  height: auto;
   width: 340px;
   max-width: 85vw;
   overflow-y: auto;
