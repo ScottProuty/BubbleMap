@@ -1,6 +1,6 @@
 {
   "name": "bubblemap",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "BubbleMap - a mind map style note organizer",
   "type": "module",
   "scripts": {
