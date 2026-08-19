@@ -480,9 +480,10 @@ html, body {
   box-shadow: 4px 0 18px rgba(0,0,0,0.35);
   padding: 20px;
   padding-top: 40px;
+  border-radius: 8px;
 
   z-index: 25;
-  transform: translateX(-100%);
+  transform: translateX(-97%);
   transition: transform 0.25s ease;
 }
 
