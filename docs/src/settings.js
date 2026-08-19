@@ -81,14 +81,31 @@ function closeSettings() {
   }
 }
 
-// Lines the panel's top edge up with the top of the gear/Settings button,
-// whatever that button's actual rendered height turns out to be, rather than
-// hardcoding it to match the toolbar layout in CSS.
+// #SettingsBtn is taken out of the toolbar's flex flow (position: fixed - see
+// Styles.css) so its full panel-width doesn't stretch #doneListBtn to match
+// via the column's default align-items: stretch. That means its position has
+// to be computed here instead of by flex layout: sit right below
+// #doneListBtn, and while closed, shift left just enough that its right edge
+// lines up with #doneListBtn's right edge - so it still reads as "one more
+// toolbar button" until the panel opens.
+function positionSettingsBtn() {
+  const gap = 10;
+  const doneRect = dom.doneListBtn.getBoundingClientRect();
+  const btnWidth = dom.settingsBtn.getBoundingClientRect().width;
+  dom.settingsBtn.style.top = (doneRect.bottom + gap) + 'px';
+  dom.settingsBtn.style.setProperty('--settings-closed-shift', (doneRect.width - btnWidth) + 'px');
+}
+
+// Lines the panel's top edge up with the top of the Settings button, whatever
+// that button's actual rendered top turns out to be, rather than hardcoding
+// it to match the toolbar layout in CSS.
 function alignSettingsPanelTop() {
   const top = dom.settingsBtn.getBoundingClientRect().top;
   dom.settingsPanel.style.top = top + 'px';
   dom.settingsPanel.style.maxHeight = `calc(100vh - ${top}px)`;
 }
+
+positionSettingsBtn();
 alignSettingsPanelTop();
 
 // The gear button toggles the panel: slides it in from off-screen on the left,

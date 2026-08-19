@@ -46,19 +46,39 @@ html, body {
   padding: 0;
 }
 
-/* Slides along with #settingsPanel (see toggleSettings()) but a shorter
-   distance, so part of the button still pokes out past the panel's right
-   edge when open - a visual cue that it's still there to click and close it.
-   translateX(calc(348px - 100%)) lands the button's right edge exactly
-   24px past the (340px-wide) open panel's right edge, however wide the
-   button itself renders ("100%" in a transform is relative to the
-   element's own box). */
+/* Sized to exactly match #settingsPanel's width, so when open it reads as
+   the panel's own header/tab rather than a separate floating button. It's
+   taken out of the toolbar's flex flow (position: fixed) so this width
+   doesn't stretch #doneListBtn to match via the column's default
+   align-items: stretch. Both --settings-closed-shift (how far left it sits
+   while closed, computed in settings.js to land its right edge on
+   #doneListBtn's right edge) and its top (also set in settings.js, to sit
+   right below #doneListBtn) are necessary because a fixed-position flex
+   child's automatic position doesn't account for its former siblings.
+   The icon sits at the button's left edge and the label at its right edge
+   (justify-content: space-between), so while closed - with everything but
+   the rightmost sliver of the button off-screen to the left - only the
+   label is visible, matching how the button looked before it grew to full
+   panel width; opening slides the whole thing into view, icon included. */
 #SettingsBtn {
+  position: fixed;
+  left: 16px;
+  width: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   transition: transform 0.25s ease;
+  transform: translateX(var(--settings-closed-shift, 0px));
 }
 
 #SettingsBtn.open {
-  transform: translateX(calc(348px - 100%));
+  transform: translateX(-16px);
+}
+
+#settingsBtnIcon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 #canvas {
