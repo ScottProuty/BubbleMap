@@ -9,6 +9,7 @@
     "fs:allow-document-read-recursive",
     "fs:allow-document-write-recursive",
     "dialog:allow-open",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "dialog:allow-message"
   ]
 }

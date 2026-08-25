@@ -10,7 +10,7 @@
 // Also requires capabilities granted in src-tauri/capabilities/default.json:
 //   fs:allow-document-read-recursive, fs:allow-document-write-recursive,
 //   dialog:allow-open, dialog:allow-save
-const { readTextFile, writeTextFile, exists, mkdir, copyFile, BaseDirectory } = window.__TAURI__.fs;
+const { readTextFile, writeTextFile, exists, mkdir, copyFile, rename, BaseDirectory } = window.__TAURI__.fs;
 const { open: openDialog, save: saveDialog } = window.__TAURI__.dialog;
 
 const CANONICAL_DIR = 'BubbleMap';
@@ -31,9 +31,19 @@ async function load() {
   return JSON.parse(content);
 }
 
+// Written to a temp file and renamed into place rather than overwritten directly -
+// a rename is atomic, so a write that's interrupted (crash, or - notably - OneDrive
+// or another sync client locking the file mid-write) can never leave bubbles.json
+// half-old/half-new. A direct overwrite has no such guarantee: if the new content
+// is shorter than what's already on disk and the write doesn't reach the end,
+// stale bytes from the previous save are left dangling after the new JSON,
+// corrupting the file.
+const TEMP_FILE = 'BubbleMap/bubbles.json.tmp';
+
 async function save(data) {
   await ensureCanonicalFile();
-  await writeTextFile(CANONICAL_FILE, JSON.stringify(data, null, 2), { baseDir: BaseDirectory.Document });
+  await writeTextFile(TEMP_FILE, JSON.stringify(data, null, 2), { baseDir: BaseDirectory.Document });
+  await rename(TEMP_FILE, CANONICAL_FILE, { oldPathBaseDir: BaseDirectory.Document, newPathBaseDir: BaseDirectory.Document });
 }
 
 // Copies the always-up-to-date canonical file to a location the user picks, rather
