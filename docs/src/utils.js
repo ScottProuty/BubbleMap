@@ -7,6 +7,10 @@ import { dom, state } from './state.js';
 // values into the currently selected theme's ranges, so switching themes just
 // changes the scaling, never the underlying stored value. That's what lets a
 // bubble return to its exact previous look when the user switches back.
+//
+// Each *Range can be a single [min, max] pair, or an array of pairs to allow
+// multiple disjoint bands - e.g. hueRange: [[20, 35], [75, 180]] permits only
+// those two hue bands (see scaleToRange() below).
 export const colorThemes = {
   'Rainbow': {
     hueRange: [0, 360],
@@ -24,19 +28,19 @@ export const colorThemes = {
     lightnessRange: [50, 70]
   },
   'Sunset': {
-    hueRange: [0, 60],
+    hueRange: [[0, 60], [270, 360]],
     saturationRange: [70, 90],
     lightnessRange: [40, 60]
+  },
+  'Forest': {
+    hueRange: [[20, 35], [75, 180]],
+    saturationRange: [30, 80],
+    lightnessRange: [10, 35]
   },
   'Muted': {
     hueRange: [0, 360],
     saturationRange: [30, 50],
     lightnessRange: [55, 70]
-  },
-  'Vibrant': {
-    hueRange: [0, 360],
-    saturationRange: [80, 100],
-    lightnessRange: [55, 65]
   },
   'Grayscale': {
     hueRange: [0, 360],
@@ -60,8 +64,25 @@ export function setColorTheme(name) {
   if (colorThemes[name]) currentTheme = name;
 }
 
-function scaleToRange(t, [min, max]) {
-  return min + t * (max - min);
+// A range is either a single [min, max] pair, or multiple disjoint pairs -
+// e.g. hueRange: [[20, 35], [75, 180]] to allow only those two hue bands. When
+// there are multiple pairs, t is distributed across them in proportion to each
+// pair's width, so the mapping stays a uniform density across the combined range.
+function scaleToRange(t, range) {
+  const pairs = Array.isArray(range[0]) ? range : [range];
+  if (pairs.length === 1) {
+    const [min, max] = pairs[0];
+    return min + t * (max - min);
+  }
+  const totalSpan = pairs.reduce((sum, [min, max]) => sum + (max - min), 0);
+  let pos = t * totalSpan;
+  for (const [min, max] of pairs) {
+    const width = max - min;
+    if (pos <= width) return min + pos;
+    pos -= width;
+  }
+  const [min, max] = pairs[pairs.length - 1];
+  return max;
 }
 
 export function clearEl(el) {
