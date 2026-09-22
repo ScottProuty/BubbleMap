@@ -292,6 +292,12 @@ html, body {
   background: rgba(255, 255, 255, 0.06);
   pointer-events: none;
   z-index: 15;
+  /* Resizing a dotted/dashed border every mousemove frame can leave stray
+     white specks behind on the canvas's radial-gradient background in
+     Chromium - the border repaint doesn't fully clear the old dot pattern.
+     Promoting the box to its own compositing layer forces a clean repaint
+     of the region on every change instead. */
+  transform: translateZ(0);
 }
 
 #selectionActionsPanel {
