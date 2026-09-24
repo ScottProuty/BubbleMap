@@ -2,8 +2,8 @@
 // the SVG link lines (including hover state and the unlink "x" button).
 
 import { dom, state } from './state.js';
-import { hslCss, distanceToSegment, clearEl, randomColor } from './utils.js';
-import { persistBubble } from './bubbles.js';
+import { hslCss, distanceToSegment, randomColor } from './utils.js';
+import { persistBubbleColors } from './bubbles.js';
 import { wakePhysics } from './physics.js';
 
 const CHILD_HUE_JITTER = 10 / 360; // Fraction of the full hue range a single-parent child's hue is shifted from its parent's
@@ -77,15 +77,20 @@ function computeColorFromParents(bubble) {
   return { h: finalHue, s: avgS, l: Math.min(1, avgL + 0.1) };
 }
 
-function recomputeColorsFrom(bubble) {
+// Walks the recolored bubble's descendants in memory, collecting every
+// {id, color} change into `changed` instead of persisting at each level, so
+// the caller can write them all back in a single batched round trip - several
+// concurrent per-bubble persistBubble() calls here used to race the same
+// load/mutate/save cycle that deleteBubbles() was fixed for.
+function recomputeColorsFrom(bubble, changed) {
   bubble.color = computeColorFromParents(bubble);
   const colorCss = hslCss(bubble.color);
   bubble.el.style.borderColor = colorCss;
   bubble.el.style.setProperty('--bubble-color', colorCss);
   if (bubble.selected) bubble.el.style.boxShadow = `0 0 18px 5px ${colorCss}`;
-  persistBubble(bubble);
+  changed.push(bubble);
   for (const b of state.bubbles.values()) {
-    if (b.parents.includes(bubble.id)) recomputeColorsFrom(b);
+    if (b.parents.includes(bubble.id)) recomputeColorsFrom(b, changed);
   }
 }
 
@@ -93,7 +98,9 @@ export function unlinkBubbles(child, parent) {
   const idx = child.parents.indexOf(parent.id);
   if (idx === -1) return;
   child.parents.splice(idx, 1);
-  recomputeColorsFrom(child);
+  const changed = [];
+  recomputeColorsFrom(child, changed);
+  persistBubbleColors(changed);
   rebuildLinksSVG();
   wakePhysics();
 }
@@ -103,7 +110,9 @@ export function linkBubbles(child, parent) {
   if (child.parents.includes(parent.id)) return;
   if (hasAncestor(parent, child.id)) return;
   child.parents.push(parent.id);
-  recomputeColorsFrom(child);
+  const changed = [];
+  recomputeColorsFrom(child, changed);
+  persistBubbleColors(changed);
   wakePhysics();
 }
 
@@ -160,54 +169,85 @@ export function updateLinkHover() {
   }
 }
 
+// Cache of linkKey -> live SVG elements for that link, so rebuildLinksSVG()
+// (called on every physics frame to track moving bubbles) can update
+// coordinates on existing elements instead of tearing down and recreating the
+// full SVG subtree every frame. Entries persist across calls; only added to
+// or removed from when the link set itself actually changes.
+const linkElements = new Map();
+
+function createLinkElement(child, parent) {
+  const entry = { child, parent };
+
+  const g = document.createElementNS(SVG_NS, 'g');
+  g.setAttribute('class', 'link-group');
+
+  const visible = document.createElementNS(SVG_NS, 'line');
+  visible.setAttribute('class', 'link-visible');
+
+  const xGroup = document.createElementNS(SVG_NS, 'g');
+  xGroup.setAttribute('class', 'link-x');
+
+  const xBg = document.createElementNS(SVG_NS, 'circle');
+  xBg.setAttribute('r', '9');
+  xBg.setAttribute('class', 'link-x-bg');
+
+  const xLabel = document.createElementNS(SVG_NS, 'text');
+  xLabel.setAttribute('class', 'link-x-label');
+  xLabel.setAttribute('x', '0');
+  xLabel.setAttribute('y', '1');
+  xLabel.textContent = '×';
+
+  xGroup.appendChild(xBg);
+  xGroup.appendChild(xLabel);
+  xGroup.addEventListener('mousedown', (e) => e.stopPropagation());
+  xGroup.addEventListener('click', (e) => {
+    e.stopPropagation();
+    unlinkBubbles(entry.child, entry.parent);
+  });
+
+  g.appendChild(visible);
+  g.appendChild(xGroup);
+
+  entry.g = g;
+  entry.visible = visible;
+  entry.xGroup = xGroup;
+  return entry;
+}
+
+function updateLinkElement(entry, child, parent, isHovered) {
+  entry.child = child;
+  entry.parent = parent;
+  entry.g.setAttribute('class', 'link-group' + (isHovered ? ' active' : ''));
+  entry.g.style.setProperty('--link-color', hslCss(parent.color));
+  entry.visible.setAttribute('x1', parent.x);
+  entry.visible.setAttribute('y1', parent.y);
+  entry.visible.setAttribute('x2', child.x);
+  entry.visible.setAttribute('y2', child.y);
+  entry.xGroup.setAttribute('transform', `translate(${(parent.x + child.x) / 2}, ${(parent.y + child.y) / 2})`);
+}
+
 export function rebuildLinksSVG() {
-  clearEl(dom.linksLayerEl);
+  const desiredKeys = new Set();
   for (const b of state.bubbles.values()) {
-    if (!b.parents.length) continue;
     for (const pid of b.parents) {
       const p = state.bubbles.get(pid);
       if (!p) continue;
 
-      const midX = (p.x + b.x) / 2;
-      const midY = (p.y + b.y) / 2;
-      const isHovered = state.hoveredLinkKey === linkKey(b.id, pid);
-
-      const g = document.createElementNS(SVG_NS, 'g');
-      g.setAttribute('class', 'link-group' + (isHovered ? ' active' : ''));
-      g.style.setProperty('--link-color', hslCss(p.color));
-
-      const visible = document.createElementNS(SVG_NS, 'line');
-      visible.setAttribute('x1', p.x);
-      visible.setAttribute('y1', p.y);
-      visible.setAttribute('x2', b.x);
-      visible.setAttribute('y2', b.y);
-      visible.setAttribute('class', 'link-visible');
-
-      const xGroup = document.createElementNS(SVG_NS, 'g');
-      xGroup.setAttribute('class', 'link-x');
-      xGroup.setAttribute('transform', `translate(${midX}, ${midY})`);
-
-      const xBg = document.createElementNS(SVG_NS, 'circle');
-      xBg.setAttribute('r', '9');
-      xBg.setAttribute('class', 'link-x-bg');
-
-      const xLabel = document.createElementNS(SVG_NS, 'text');
-      xLabel.setAttribute('class', 'link-x-label');
-      xLabel.setAttribute('x', '0');
-      xLabel.setAttribute('y', '1');
-      xLabel.textContent = '×';
-
-      xGroup.appendChild(xBg);
-      xGroup.appendChild(xLabel);
-      xGroup.addEventListener('mousedown', (e) => e.stopPropagation());
-      xGroup.addEventListener('click', (e) => {
-        e.stopPropagation();
-        unlinkBubbles(b, p);
-      });
-
-      g.appendChild(visible);
-      g.appendChild(xGroup);
-      dom.linksLayerEl.appendChild(g);
+      const key = linkKey(b.id, pid);
+      desiredKeys.add(key);
+      let entry = linkElements.get(key);
+      if (!entry) {
+        entry = createLinkElement(b, p);
+        linkElements.set(key, entry);
+        dom.linksLayerEl.appendChild(entry.g);
+      }
+      updateLinkElement(entry, b, p, state.hoveredLinkKey === key);
     }
+  }
+  for (const [key, entry] of linkElements) {
+    if (desiredKeys.has(key)) continue;
+    entry.g.remove();
+    linkElements.delete(key);
   }
 }

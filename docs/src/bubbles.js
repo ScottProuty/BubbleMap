@@ -228,6 +228,25 @@ export function persistBubble(bubble) {
   });
 }
 
+// Batched sibling of persistBubble() for color-propagation cascades (see
+// recomputeColorsFrom in linking.js), where several bubbles down a chain each
+// get a new color/parents in the same pass - persisting them one at a time
+// would race the same load/mutate/save cycle deleteBubbles() was fixed for.
+export function persistBubbleColors(bubbles) {
+  const entries = bubbles.filter((b) => b.id).map((b) => ({
+    id: b.id,
+    updates: {
+      title: b.title,
+      description: b.description,
+      parents: b.parents,
+      color: b.color,
+      done: b.done
+    }
+  }));
+  if (!entries.length) return Promise.resolve([]);
+  return bubbleRepository.updateBubblesById(entries);
+}
+
 function commitTitle(bubble, value) {
   const title = value.trim();
   if (!title || title === bubble.title) {
@@ -279,15 +298,38 @@ function deleteBubble(bubble) {
 // ---------- Bulk actions (rectangular multi-select, see src/selection.js) ----------
 
 export function deleteBubbles(bubbles) {
-  bubbles.forEach(deleteBubble);
+  const ids = bubbles.map((b) => b.id);
+  bubbleRepository.deleteBubbles(ids).then(() => {
+    const idSet = new Set(ids);
+    for (const b of state.bubbles.values()) {
+      b.parents = b.parents.filter((p) => !idSet.has(p));
+    }
+    bubbles.forEach(removeBubbleFromMainView);
+  });
 }
 
 export function markBubblesDone(bubbles) {
-  bubbles.forEach(markDone);
+  const done = new Date().toISOString();
+  const ids = bubbles.map((b) => b.id);
+  bubbleRepository.updateBubbles(ids, { done }).then(() => {
+    bubbles.forEach((bubble) => {
+      bubble.done = done;
+      if (settings.showCompletedSetting) {
+        deselectBubble(bubble);
+      } else {
+        removeBubbleFromMainView(bubble);
+      }
+    });
+    if (settings.showCompletedSetting) wakePhysics();
+  });
 }
 
 export function unmarkBubblesDone(bubbles) {
-  bubbles.forEach(unmarkBubbleFromMainView);
+  const ids = bubbles.map((b) => b.id);
+  bubbleRepository.updateBubbles(ids, { done: '' }).then((updated) => {
+    const byId = new Map(updated.map((b) => [b.id, b]));
+    bubbles.forEach((bubble) => addExistingBubbleToMainView(byId.get(bubble.id)));
+  });
 }
 
 function removeBubbleFromMainView(bubble) {

@@ -39,12 +39,8 @@ export async function createBubble({ title, color, parents }) {
   return bubble;
 }
 
-export async function updateBubble(id, updates) {
-  const all = await load();
-  const idx = all.findIndex((b) => b.id === id);
-  if (idx === -1) return null;
-  const existing = all[idx];
-  const merged = {
+function mergeUpdates(existing, updates) {
+  return {
     ...existing,
     description: updates.description !== undefined ? updates.description : existing.description,
     parents: updates.parents !== undefined ? updates.parents : existing.parents,
@@ -52,23 +48,71 @@ export async function updateBubble(id, updates) {
     done: updates.done !== undefined ? updates.done : existing.done,
     title: updates.title !== undefined && String(updates.title).trim() ? String(updates.title).trim() : existing.title
   };
+}
+
+export async function updateBubble(id, updates) {
+  const all = await load();
+  const idx = all.findIndex((b) => b.id === id);
+  if (idx === -1) return null;
+  const merged = mergeUpdates(all[idx], updates);
   all[idx] = merged;
   await persist(all);
   return merged;
 }
 
-export async function deleteBubble(id) {
+// Applies a different `updates` object per id in one load/persist round trip -
+// for cases like color propagation where each affected bubble ends up with a
+// different color/parents, so updateBubbles()'s single shared `updates` won't do.
+export async function updateBubblesById(entries) {
+  const updatesById = new Map(entries.map((e) => [e.id, e.updates]));
   const all = await load();
-  const idx = all.findIndex((b) => b.id === id);
-  if (idx === -1) return false;
-  all.splice(idx, 1);
-  all.forEach((b) => {
-    if (b.parents.includes(id)) {
-      b.parents = b.parents.filter((p) => p !== id);
-    }
+  const updated = [];
+  all.forEach((b, idx) => {
+    const updates = updatesById.get(b.id);
+    if (!updates) return;
+    const merged = mergeUpdates(b, updates);
+    all[idx] = merged;
+    updated.push(merged);
   });
   await persist(all);
+  return updated;
+}
+
+export async function deleteBubble(id) {
+  return deleteBubbles([id]);
+}
+
+// Deletes all given ids in a single load/persist round trip, so the writes
+// can't race each other and clobber one another the way sequential
+// deleteBubble() calls would.
+export async function deleteBubbles(ids) {
+  const idSet = new Set(ids);
+  const all = await load();
+  const remaining = all.filter((b) => !idSet.has(b.id));
+  if (remaining.length === all.length) return false;
+  remaining.forEach((b) => {
+    if (b.parents.some((p) => idSet.has(p))) {
+      b.parents = b.parents.filter((p) => !idSet.has(p));
+    }
+  });
+  await persist(remaining);
   return true;
+}
+
+// Applies the same `updates` (e.g. a done-state change) to every id in one
+// load/persist round trip, for the same reason as deleteBubbles above.
+export async function updateBubbles(ids, updates) {
+  const idSet = new Set(ids);
+  const all = await load();
+  const updated = [];
+  all.forEach((b, idx) => {
+    if (!idSet.has(b.id)) return;
+    const merged = mergeUpdates(b, updates);
+    all[idx] = merged;
+    updated.push(merged);
+  });
+  await persist(all);
+  return updated;
 }
 
 export async function exportBackup() {
@@ -93,7 +137,10 @@ export default {
   getBubble,
   createBubble,
   updateBubble,
+  updateBubbles,
+  updateBubblesById,
   deleteBubble,
+  deleteBubbles,
   exportBackup,
   importBackup,
   replaceAll

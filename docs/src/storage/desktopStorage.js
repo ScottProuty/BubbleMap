@@ -16,13 +16,25 @@ const { open: openDialog, save: saveDialog } = window.__TAURI__.dialog;
 const CANONICAL_DIR = 'BubbleMap';
 const CANONICAL_FILE = 'BubbleMap/bubbles.json'; // resolved relative to BaseDirectory.Document
 
-async function ensureCanonicalFile() {
-  if (!(await exists(CANONICAL_DIR, { baseDir: BaseDirectory.Document }))) {
-    await mkdir(CANONICAL_DIR, { baseDir: BaseDirectory.Document, recursive: true });
+// The canonical file/dir can't stop existing on their own once confirmed present,
+// so the exists()/mkdir()/writeTextFile() IPC round trips only need to happen once
+// per app session rather than before every single load()/save(). The promise is
+// cached (rather than a plain boolean) so concurrent early callers all await the
+// same in-flight check instead of each kicking off their own.
+let ensureCanonicalFilePromise = null;
+
+function ensureCanonicalFile() {
+  if (!ensureCanonicalFilePromise) {
+    ensureCanonicalFilePromise = (async () => {
+      if (!(await exists(CANONICAL_DIR, { baseDir: BaseDirectory.Document }))) {
+        await mkdir(CANONICAL_DIR, { baseDir: BaseDirectory.Document, recursive: true });
+      }
+      if (!(await exists(CANONICAL_FILE, { baseDir: BaseDirectory.Document }))) {
+        await writeTextFile(CANONICAL_FILE, '[]', { baseDir: BaseDirectory.Document });
+      }
+    })();
   }
-  if (!(await exists(CANONICAL_FILE, { baseDir: BaseDirectory.Document }))) {
-    await writeTextFile(CANONICAL_FILE, '[]', { baseDir: BaseDirectory.Document });
-  }
+  return ensureCanonicalFilePromise;
 }
 
 async function load() {
