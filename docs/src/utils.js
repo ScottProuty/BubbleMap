@@ -133,7 +133,12 @@ export function positionEl(bubble) {
 }
 
 export function bubbleRadius(bubble) {
-  const w = (bubble.el.offsetWidth || 140) / state.zoom;
-  const h = (bubble.el.offsetHeight || 50) / state.zoom;
+  // offsetWidth/offsetHeight are already in world-space px - the zoom/pan
+  // transform (applyTransform() above) is applied to the #world container as
+  // a whole, not per-bubble, so it doesn't affect an element's own layout
+  // size. Dividing by state.zoom here used to make bubbles' effective physics
+  // radius grow when zooming out, pushing them apart for no reason.
+  const w = bubble.el.offsetWidth || 140;
+  const h = bubble.el.offsetHeight || 50;
   return Math.hypot(w, h) / 2;
 }
