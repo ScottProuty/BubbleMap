@@ -28,7 +28,7 @@ export const dom = {
 // conceptually config rather than runtime/interaction state.
 export const physicsParams = {
   REPEL_FORCE: 180, // Distance each bubble would like to be away from every other bubble
-  MAX_DISTANCE: 420, // Max distance between each bubble and the next closest bubble
+  MAX_DISTANCE: 420, // Max distance between each bubble and the next closest bubble. Negative = "Infinite" (disabled) - see settings.js.
   LINK_DISTANCE: 140 // Distance a child bubble would like to be away from its parent
 };
 

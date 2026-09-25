@@ -27,9 +27,18 @@ function stepPhysics(dt) {
     f.fy += fy;
   };
 
+  // A negative MAX_DISTANCE means the "stranded bubble" setting is off (see
+  // settings.js) - skip tracking nearest-neighbor distances below entirely,
+  // since nothing will use them.
+  const trackNearest = physicsParams.MAX_DISTANCE >= 0;
+  const nearest = trackNearest ? new Map(list.map((b) => [b.id, { dist: Infinity, other: null }])) : null;
+
   // Repulsion between unrelated bubbles, and a strong push apart for any bubbles
   // that visually intersect (regardless of link status). Computed once per pair
-  // and applied symmetrically to both sides.
+  // and applied symmetrically to both sides. Also doubles as the all-pairs scan
+  // for the "stranded bubble" nearest-neighbor tracking below, since it already
+  // computes the distance between every pair once per frame - that used to be a
+  // separate O(n^2) loop over the same pairs.
   for (let i = 0; i < list.length; i++) {
     const b = list[i];
     for (let j = i + 1; j < list.length; j++) {
@@ -37,6 +46,13 @@ function stepPhysics(dt) {
       const dx = o.x - b.x, dy = o.y - b.y;
       let dist = Math.hypot(dx, dy);
       if (dist < 0.01) dist = 0.01;
+
+      if (trackNearest) {
+        const nb = nearest.get(b.id);
+        if (dist < nb.dist) { nb.dist = dist; nb.other = o; }
+        const no = nearest.get(o.id);
+        if (dist < no.dist) { no.dist = dist; no.other = b; }
+      }
 
       const combinedRadius = bubbleRadius(b) + bubbleRadius(o);
       const overlap = combinedRadius - dist;
@@ -82,19 +98,17 @@ function stepPhysics(dt) {
     }
   }
 
-  // Bubbles stranded far from everything else drift back toward their nearest neighbor.
-  for (const b of list) {
-    let nearestDist = Infinity, nearest = null;
-    for (const o of list) {
-      if (o === b) continue;
-      const d = Math.hypot(o.x - b.x, o.y - b.y);
-      if (d < nearestDist) { nearestDist = d; nearest = o; }
-    }
-    if (nearest && nearestDist > physicsParams.MAX_DISTANCE) {
-      const dx = nearest.x - b.x, dy = nearest.y - b.y;
-      const d = nearestDist || 0.01;
-      const excess = nearestDist - physicsParams.MAX_DISTANCE;
-      addForce(b.id, (dx / d) * excess * 0.02, (dy / d) * excess * 0.02);
+  // Bubbles stranded far from everything else drift back toward their nearest
+  // neighbor, using the distances already tracked in the pairwise loop above.
+  if (trackNearest) {
+    for (const b of list) {
+      const n = nearest.get(b.id);
+      if (n.other && n.dist > physicsParams.MAX_DISTANCE) {
+        const dx = n.other.x - b.x, dy = n.other.y - b.y;
+        const d = n.dist || 0.01;
+        const excess = n.dist - physicsParams.MAX_DISTANCE;
+        addForce(b.id, (dx / d) * excess * 0.02, (dy / d) * excess * 0.02);
+      }
     }
   }
 
