@@ -6,7 +6,8 @@
   "scripts": {
     "tauri": "tauri",
     "dev": "npm run tauri dev",
-    "build": "npm run tauri build"
+    "build": "npm run tauri build",
+    "version": "node scripts/sync-version.js && git add docs/src/version.js"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",

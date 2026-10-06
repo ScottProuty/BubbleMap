@@ -18,6 +18,7 @@ import { loadDoneBubbles, hideDoneBubbles, refreshBubbleColors } from './bubbles
 import bubbleRepository from './storage/bubbleRepository.js';
 import { isTauri } from './storage/storage.js';
 import { colorThemeNames, setColorTheme } from './utils.js';
+import { VERSION } from './version.js';
 
 // Settings are only persisted to localStorage on the web (non-Tauri) deployment -
 // the desktop build will get its own persistence alongside its file-based bubble
@@ -132,6 +133,7 @@ function bindSettingsControls() {
   const maxDistanceInput = document.getElementById('maxDistanceSettingMenu');
   const linkDistanceInput = document.getElementById('linkDistanceSettingMenu');
 
+  document.getElementById('appVersion').textContent = VERSION;
   showCompletedInput.checked = settings.showCompletedSetting;
   repelForceInput.value = settings.repelForce;
   themeInput.value = settings.colorTheme;

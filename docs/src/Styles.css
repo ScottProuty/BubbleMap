@@ -567,6 +567,18 @@ html, body {
   margin-top: 16px;
 }
 
+.settings-footer {
+  margin-top: 16px;
+  font-size: 11px;
+  text-align: center;
+  color: #8a8d94;
+}
+
+.settings-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .settings-btn {
   flex: 1;
   border: 1px solid #45484f;
