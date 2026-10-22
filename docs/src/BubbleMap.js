@@ -4,7 +4,7 @@
 import { dom, state } from './state.js';
 import { applyTransform, screenToWorld } from './utils.js';
 import { startCreateBubble, deselectBubble, loadBubbles } from './bubbles.js';
-import { updateLinkHover } from './linking.js';
+import { updateLinkHover, unlinkHoveredLink } from './linking.js';
 import { openDoneList, closeDoneList } from './doneList.js';
 import { toggleSettings, saveBackup, recallBackup } from './settings.js';
 import { startBoxSelect, resetSelection, deleteAllSelected, toggleDoneAllSelected } from './selection.js';
@@ -22,6 +22,8 @@ dom.canvasEl.addEventListener('mousedown', (e) => {
     return;
   }
   if (e.button !== 0) return;
+  // Clicking a hovered link on empty canvas cuts it (bubbles on top keep their own click behavior).
+  if (state.hoveredLinkKey && (e.target === dom.canvasEl || e.target === dom.worldEl) && unlinkHoveredLink()) return;
   if (state.selectedBubble) deselectBubble(state.selectedBubble);
   startBoxSelect(e);
 });

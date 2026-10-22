@@ -94,6 +94,12 @@ html, body {
     #1a1b1e;
 }
 
+/* Scissors cursor (inline SVG, so it works on every OS/browser); falls back to
+   crosshair where custom cursors are unsupported. Hotspot is the blade pivot. */
+#canvas.link-hover {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M9 6L23 24M23 6L9 24' stroke='%23000' stroke-width='5'/%3E%3Cpath d='M9 6L23 24M23 6L9 24' stroke='%23fff' stroke-width='2.5'/%3E%3Ccircle cx='9' cy='26' r='3.5' stroke='%23000' stroke-width='4.5'/%3E%3Ccircle cx='23' cy='26' r='3.5' stroke='%23000' stroke-width='4.5'/%3E%3Ccircle cx='9' cy='26' r='3.5' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='23' cy='26' r='3.5' stroke='%23fff' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 16 15, crosshair;
+}
+
 #canvas.panning {
   cursor: grabbing;
 }
@@ -124,33 +130,6 @@ html, body {
   filter: drop-shadow(0 0 4px var(--link-color));
 }
 
-.link-x {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s ease;
-}
-
-.link-group.active .link-x {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.link-x-bg {
-  fill: #24262b;
-  stroke: var(--link-color);
-  stroke-width: 1.5px;
-  cursor: pointer;
-}
-
-.link-x-label {
-  fill: #e6e6e6;
-  font-size: 13px;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  text-anchor: middle;
-  dominant-baseline: central;
-  pointer-events: none;
-  user-select: none;
-}
 
 .bubble {
   position: absolute;

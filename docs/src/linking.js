@@ -1,5 +1,5 @@
 // Parent/child linking, the color-inheritance that flows from it, and rendering
-// the SVG link lines (including hover state and the unlink "x" button).
+// the SVG link lines (including hover state and click-to-unlink).
 
 import { dom, state } from './state.js';
 import { hslCss, distanceToSegment, randomColor } from './utils.js';
@@ -165,8 +165,18 @@ export function updateLinkHover() {
   }
   if (closestKey !== state.hoveredLinkKey) {
     state.hoveredLinkKey = closestKey;
+    dom.canvasEl.classList.toggle('link-hover', closestKey !== null);
     rebuildLinksSVG();
   }
+}
+
+// Unlinks the currently hovered link, if any. Returns true if one was removed.
+export function unlinkHoveredLink() {
+  const entry = linkElements.get(state.hoveredLinkKey);
+  if (!entry) return false;
+  unlinkBubbles(entry.child, entry.parent);
+  updateLinkHover();
+  return true;
 }
 
 // Cache of linkKey -> live SVG elements for that link, so rebuildLinksSVG()
@@ -185,33 +195,10 @@ function createLinkElement(child, parent) {
   const visible = document.createElementNS(SVG_NS, 'line');
   visible.setAttribute('class', 'link-visible');
 
-  const xGroup = document.createElementNS(SVG_NS, 'g');
-  xGroup.setAttribute('class', 'link-x');
-
-  const xBg = document.createElementNS(SVG_NS, 'circle');
-  xBg.setAttribute('r', '9');
-  xBg.setAttribute('class', 'link-x-bg');
-
-  const xLabel = document.createElementNS(SVG_NS, 'text');
-  xLabel.setAttribute('class', 'link-x-label');
-  xLabel.setAttribute('x', '0');
-  xLabel.setAttribute('y', '1');
-  xLabel.textContent = '×';
-
-  xGroup.appendChild(xBg);
-  xGroup.appendChild(xLabel);
-  xGroup.addEventListener('mousedown', (e) => e.stopPropagation());
-  xGroup.addEventListener('click', (e) => {
-    e.stopPropagation();
-    unlinkBubbles(entry.child, entry.parent);
-  });
-
   g.appendChild(visible);
-  g.appendChild(xGroup);
 
   entry.g = g;
   entry.visible = visible;
-  entry.xGroup = xGroup;
   return entry;
 }
 
@@ -224,7 +211,6 @@ function updateLinkElement(entry, child, parent, isHovered) {
   entry.visible.setAttribute('y1', parent.y);
   entry.visible.setAttribute('x2', child.x);
   entry.visible.setAttribute('y2', child.y);
-  entry.xGroup.setAttribute('transform', `translate(${(parent.x + child.x) / 2}, ${(parent.y + child.y) / 2})`);
 }
 
 export function rebuildLinksSVG() {
