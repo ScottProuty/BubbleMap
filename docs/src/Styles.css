@@ -307,9 +307,12 @@ html, body {
   min-width: 130px;
 }
 
+#selectionDeleteAllBtn {
+  border-color: #7a3a3a;
+}
+
 #selectionDeleteAllBtn:hover {
   background: #5a2a2a;
-  border-color: #7a3a3a;
 }
 
 #selectionMarkDoneBtn:hover {
